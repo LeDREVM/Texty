@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ Transcripteur Audio Pro - Négus Dja</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Meta tags pour SEO et partage -->
+    <meta name="description" content="Transcripteur audio professionnel créé par Négus Dja. Transcription précise multilingue pour ingénieurs son et vidéastes.">
+    <meta name="keywords" content="transcription audio, sous-titres, whisper, guadeloupe, négus dja">
+    <meta name="author" content="Négus Dja">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Transcripteur Audio Pro">
+    <meta property="og:description" content="Application de transcription audio professionnelle">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/static/images/logo.png">
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête -->
+        <header class="header">
+            <h1>🎙️ Transcripteur Audio Pro</h1>
+            <p>Retranscription précise et multilingue</p>
+            <p class="author">✨ Créé par <strong>Négus Dja</strong> - Directeur Artistique Guadeloupe</p>
+            <p class="subtitle">🎯 Optimisé pour les ingénieurs son et vidéastes avec TDAH</p>
+        </header>
+
+        <!-- Navigation par onglets -->
+        <nav class="tabs">
+            <button class="tab active" onclick="showTab('upload')" id="tab-upload">
+                📁 Import Audio
+            </button>
+            <button class="tab" onclick="showTab('transcribe')" id="tab-transcribe">
+                🎯 Transcription
+            </button>
+            <button class="tab" onclick="showTab('edit')" id="tab-edit">
+                ✂️ Édition Audio
+            </button>
+            <button class="tab" onclick="showTab('enhance')" id="tab-enhance">
+                🔧 Amélioration
+            </button>
+            <button class="tab" onclick="showTab('export')" id="tab-export">
+                📤 Export & Partage
+            </button>
+        </nav>
+
+        <main class="main-content">
+            <!-- Zone de statut global -->
+            <div id="globalStatus" class="status-container" style="display: none;"></div>
+
+            <!-- Onglet 1: Import Audio -->
+            <section id="upload" class="tab-content active">
+                <h2>📁 Importer votre fichier audio</h2>
+                
+                <!-- Zone de drop -->
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">🎵</div>
+                    <h3>Glissez votre fichier audio ici</h3>
+                    <p>ou cliquez pour sélectionner</p>
+                    <p class="format-info">
+                        <strong>Formats supportés:</strong><br>
+                        Audio: MP3, WAV, M4A, FLAC, OGG, WMA<br>
+                        Vidéo: MP4, AVI, MOV, MKV, WEBM
+                    </p>
+                    <input type="file" id="audioFile" accept="audio/*,video/*" style="display: none;">
+                </div>
+
+                <!-- Informations du fichier -->
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <h3>📋 Informations du fichier</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">Nom:</span>
+                            <span id="fileName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Taille:</span>
+                            <span id="fileSize">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Durée:</span>
+                            <span id="fileDuration">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Format:</span>
+                            <span id="fileFormat">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fonctionnalités -->
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Précision maximale</h3>
+                        <p>IA Whisper avec correction automatique pour une transcription au mot près</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Multilingue</h3>
+                        <p>Plus de 25 langues supportées avec détection automatique</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Traitement rapide</h3>
+                        <p>Optimisé pour une transcription efficace même sur de longs fichiers</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>100% Privé</h3>
+                        <p>Traitement local, vos données restent confidentielles</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Onglet 2: Transcription -->
+            <section id="transcribe" class="tab-content">
+                <h2>🎯 Configuration de la transcription</h2>
+                
+                <div class="control-panel">
+                    <div class="controls-grid">
+                        <div class="form-group">
+                            <label for="language">🌍 Langue</label>
+                            <select id="language">
+                                <option value="auto">Détection automatique</option>
+                                <option value="fr" selected>Français</option>
+                                <option value="en">Anglais</option>
+                                <option value="es">Espagnol</option>
+                                <option value="de">Allemand</option>
+                                <option value="it">Italien</option>
+                                <option value="pt">Portugais</option>
+                                <option value="ru">Russe</option>
+                                <option value="zh">Chinois</option>
+                                <option value="ja">Japonais</option>
+                                <option value="ar">Arabe</option>
+                                <option value="hi">Hindi</option>
+                                <option value="ko">Coréen</option>
+                                <option value="nl">Néerlandais</option>
+                                <option value="sv">Suédois</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="model">🧠 Niveau de précision</label>
+                            <select id="model">
+                                <option value="tiny">Ultra rapide (moins précis)</option>
+                                <option value="base">Rapide</option>
+                                <option value="small" selected>Équilibré (recommandé)</option>
+                                <option value="medium">Précis (plus lent)</option>
+                                <option value="large">Maximum de précision</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="speakers">👥 Locuteurs</label>
+                            <select id="speakers">
+                                <option value="false">Désactivé</option>
+                                <option value="true">Détecter les locuteurs</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="outputFormat">📝 Format de sortie</label>
+                            <select id="outputFormat">
+                                <option value="text">Texte simple</option>
+                                <option value="srt">Sous-titres (SRT)</option>
+                                <option value="vtt">WebVTT</option>
+                                <option value="json">JSON détaillé</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Options avancées -->
+                    <details class="advanced-options">
+                        <summary>⚙️ Options avancées</summary>
+                        <div class="advanced-controls">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enhanceAudio" checked>
+                                <span class="checkmark"></span>
+                                Améliorer la qualité audio avant transcription
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="addTimestamps" checked>
+                                <span class="checkmark"></span>
+                                Inclure les timestamps détaillés
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoCorrect" checked>
+                                <span class="checkmark"></span>
+                                Correction automatique du texte
+                            </label>
+                        </div>
+                    </details>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-large" onclick="startTranscription()" id="transcribeBtn">
+                            🚀 Lancer la transcription
+                        </button>
+                        <button class="btn btn-secondary" onclick="validateAudio()" id="validateBtn">
+                            🔍 Analyser l'audio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barre de progression -->
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-header">
+                        <h3>⏳ Transcription en cours...</h3>
+                        <span id="progressText">Initialisation...</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span id="progressPercent">0%</span>
+                        <span id="progressTime">Temps estimé: -</span>
+                    </div>
+                </div>
+
+                <!-- Zone de résultat -->
+                <div class="transcript-area" id="transcriptArea" style="display: none;">
+                    <div class="transcript-header">
+                        <h3>📝 Résultat de la transcription</h3>
+                        <div class="transcript-stats">
+                            <span id="wordCount">0 mots</span>
+                            <span id="confidence">Confiance: -%</span>
+                            <span id="processingTime">Temps: -</span>
+                        </div>
+                    </div>
+                    
+                    <div class="transcript-editor-container">
+                        <textarea class="transcript-editor" id="transcriptResult" 
+                                  placeholder="Le texte transcrit apparaîtra ici..."></textarea>
+                        
+                        <div class="editor-toolbar">
+                            <button class="btn btn-icon" onclick="formatText('bold')" title="Gras">
+                                <strong>B</strong>
+                            </button>
+                            <button class="btn btn-icon" onclick="formatText('italic')" title="Italique">
+                                <em>I</em>
+                            </button>
+                            <button class="btn btn-icon" onclick="formatText('underline')" title="Souligné">
+                                <u>U</u>
+                            </button>
+                            <button class="btn btn-icon" onclick="findReplace()" title="Rechercher/Remplacer">
+                                🔍
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Onglet 3: Édition Audio -->
+            <section id="edit" class="tab-content">
+                <h2>✂️ Édition et lecture audio</h2>
+                
+                <div class="audio-player" id="audioPlayerContainer" style="display: none;">
+                    <!-- Visualisation de forme d'onde -->
+                    <div class="waveform-container">
+                        <canvas id="waveform" width="800" height="120"></canvas>
+                        <div class="playhead" id="playhead"></div>
+                        <div class="selection-overlay" id="selectionOverlay"></div>
+                    </div>
+                    
+                    <!-- Contrôles de lecture -->
+                    <div class="audio-controls">
+                        <div class="control-group">
+                            <button class="btn btn-icon btn-primary" id="playPauseBtn" onclick="togglePlayPause()">
+                                ▶️
+                            </button>
+                            <button class="btn btn-icon btn-secondary" onclick="stopAudio()">⏹️</button>
+                            <button class="btn btn-icon btn-secondary" onclick="rewind()">⏪</button>
+                            <button class="btn btn-icon btn-secondary" onclick="fastForward()">⏩️</button>
+                        </div>
+                        
+                        <div class="time-info">
+                            <span class="time-display" id="timeDisplay">00:00 / 00:00</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <button class="btn btn-icon btn-secondary" onclick="decreaseSpeed()">🐌</button>
+                            <span id="speedDisplay">1.0x</span>
+                            <button class="btn btn-icon btn-secondary" onclick="increaseSpeed()">🚀</button>
+                        </div>
+                    </div>
+
+                    <!-- Sliders de contrôle -->
+                    <div class="audio-sliders">
+                        <div class="slider-group">
+                            <label>🎚️ Position</label>
+                            <input type="range" class="slider" id="positionSlider" min="0" max="100" value="0">
+                        </div>
+                        <div class="slider-group">
+                            <label>🔊 Volume</label>
+                            <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="100">
+                        </div>
+                    </div>
+
+                    <!-- Outils d'édition -->
+                    <div class="editing-tools">
+                        <h4>✂️ Outils d'édition</h4>
+                        <div class="tool-buttons">
+                            <button class="btn btn-secondary" onclick="setSelectionStart()">
+                                📍 Marquer début
+                            </button>
+                            <button class="btn btn-secondary" onclick="setSelectionEnd()">
+                                📍 Marquer fin
+                            </button>
+                            <button class="btn btn-primary" onclick="playSelection()">
+                                ▶️ Lire sélection
+                            </button>
+                            <button class="btn btn-warning" onclick="cropSelection()">
+                                ✂️ Rogner sélection
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteSelection()">
+                                🗑️ Supprimer sélection
+                            </button>
+                        </div>
+                        
+                        <div class="selection-info">
+                            <span>Sélection: </span>
+                            <span id="selectionDisplay">Aucune sélection</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Message si aucun fichier -->
+                <div class="no-audio-message" id="noAudioMessage">
+                    <div class="message-icon">🎵</div>
+                    <h3>Aucun fichier audio chargé</h3>
+                    <p>Veuillez d'abord importer un fichier audio dans l'onglet "Import Audio"</p>
+                    <button class="btn btn-primary" onclick="showTab('upload')">
+                        📁 Aller à l'import
+                    </button>
+                </div>
+            </section>
+
+            <!-- Onglet 4: Amélioration -->
+            <section id="enhance" class="tab-content">
+                <h2>🔧 Amélioration de la qualité audio</h2>
+                
+                <div class="enhancement-panel">
+                    <div class="enhancement-preview">
+                        <h3>👁️ Aperçu des améliorations</h3>
+                        <div class="audio-quality-indicator">
+                            <div class="quality-meter">
+                                <div class="quality-bar" id="qualityBar"></div>
+                            </div>
+                            <span id="qualityText">Analyser le fichier</span>
+                        </div>
+                        
+                        <button class="btn btn-secondary" onclick="analyzeAudioQuality()" id="analyzeBtn">
+                            🔍 Analyser la qualité
+                        </button>
+                    </div>
+                    
+                    <div class="enhancement-controls">
+                        <div class="control-section">
+                            <h4>🔇 Réduction de bruit</h4>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="noiseReduction" min="0" max="100" value="50">
+                                <span class="slider-value" id="noiseValue">50%</span>
+                            </div>
+                            <p class="help-text">Supprime les bruits de fond et améliore la clarté</p>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>📢 Amplification</h4>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="amplification" min="-20" max="20" value="0">
+                                <span class="slider-value" id="ampValue">0 dB</span>
+                            </div>
+                            <p class="help-text">Ajuste le volume général du signal</p>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>🎼 Égaliseur</h4>
+                            <div class="eq-controls">
+                                <div class="eq-band">
+                                    <label>Graves</label>
+                                    <input type="range" class="slider vertical" id="bassEQ" min="-15" max="15" value="0">
+                                    <span class="slider-value" id="bassValue">0 dB</span>
+                                </div>
+                                <div class="eq-band">
+                                    <label>Médiums</label>
+                                    <input type="range" class="slider vertical" id="midEQ" min="-15" max="15" value="0">
+                                    <span class="slider-value" id="midValue">0 dB</span>
+                                </div>
+                                <div class="eq-band">
+                                    <label>Aigus</label>
+                                    <input type="range" class="slider vertical" id="trebleEQ" min="-15" max="15" value="0">
+                                    <span class="slider-value" id="trebleValue">0 dB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-section">
+                            <h4>⚖️ Normalisation</h4>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="normalization" min="0" max="100" value="0">
+                                <span class="slider-value" id="normValue">0%</span>
+                            </div>
+                            <p class="help-text">Uniformise le niveau sonore</p>
+                        </div>
+                    </div>
+
+                    <div class="enhancement-actions">
+                        <button class="btn btn-primary btn-large" onclick="applyEnhancements()">
+                            ✨ Appliquer les améliorations
+                        </button>
+                        <button class="btn btn-secondary" onclick="previewEnhancements()">
+                            👁️ Aperçu
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetEnhancements()">
+                            ↩️ Réinitialiser
+                        </button>
+                        <button class="btn btn-warning" onclick="downloadEnhancedAudio()">
+                            💾 Télécharger audio amélioré
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Suggestions automatiques -->
+                <div class="auto-suggestions" id="autoSuggestions" style="display: none;">
+                    <h4>🎯 Suggestions automatiques</h4>
+                    <div class="suggestions-list" id="suggestionsList"></div>
+                    <button class="btn btn-primary" onclick="applySuggestions()">
+                        🚀 Appliquer les suggestions
+                    </button>
+                </div>
+            </section>
+
+            <!-- Onglet 5: Export & Partage -->
+            <section id="export" class="tab-content">
+                <h2>📤 Export et partage</h2>
+                
+                <div class="export-panel">
+                    <!-- Options d'export -->
+                    <div class="export-options">
+                        <h3>📋 Formats d'export</h3>
+                        <div class="format-grid">
+                            <div class="format-option" data-format="txt">
+                                <div class="format-icon">📄</div>
+                                <h4>Texte (TXT)</h4>
+                                <p>Texte simple pour édition</p>
+                                <button class="btn btn-secondary" onclick="exportFormat('txt')">
+                                    📥 Télécharger
+                                </button>
+                            </div>
+                            
+                            <div class="format-option" data-format="srt">
+                                <div class="format-icon">🎬</div>
+                                <h4>Sous-titres (SRT)</h4>
+                                <p>Compatible avec tous les lecteurs vidéo</p>
+                                <button class="btn btn-secondary" onclick="exportFormat('srt')">
+                                    📥 Télécharger
+                                </button>
+                            </div>
+                            
+                            <div class="format-option" data-format="vtt">
+                                <div class="format-icon">📺</div>
+                                <h4>WebVTT</h4>
+                                <p>Format web avec styles</p>
+                                <button class="btn btn-secondary" onclick="exportFormat('vtt')">
+                                    📥 Télécharger
+                                </button>
+                            </div>
+                            
+                            <div class="format-option" data-format="json">
+                                <div class="format-icon">🔧</div>
+                                <h4>JSON</h4>
+                                <p>Données structurées avec métadonnées</p>
+                                <button class="btn btn-secondary" onclick="exportFormat('json')">
+                                    📥 Télécharger
+                                </button>
+                            </div>
+                            
+                            <div class="format-option" data-format="docx">
+                                <div class="format-icon">📝</div>
+                                <h4>Word (DOCX)</h4>
+                                <p>Document formaté pour édition</p>
+                                <button class="btn btn-secondary" onclick="exportFormat('docx')">
+                                    📥 Télécharger
+                                </button>
+                            </div>
+                            
+                            <div class="format-option" data-format="csv">
+                                <div class="format-icon">📊</div>
+                                <h4>CSV</h4>
+                                <p>Données tabulaires pour analyse</p>
+                                <button class="btn btn-secondary" onclick="exportFormat('csv')">
+                                    📥 Télécharger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Options de style -->
+                    <div class="style-options">
+                        <h3>🎨 Options de style</h3>
+                        <div class="style-controls">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="includeTimestamps" checked>
+                                <span class="checkmark"></span>
+                                Inclure les timestamps
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="includeSpeakers">
+                                <span class="checkmark"></span>
+                                Afficher les locuteurs
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="includeConfidence">
+                                <span class="checkmark"></span>
+                                Afficher la confiance
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="includeMetadata" checked>
+                                <span class="checkmark"></span>
+                                Inclure les métadonnées
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Actions rapides -->
+                    <div class="quick-actions">
+                        <h3>⚡ Actions rapides</h3>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="copyToClipboard()">
+                                📋 Copier le texte
+                            </button>
+                            <button class="btn btn-primary" onclick="shareTranscript()">
+                                🔗 Partager
+                            </button>
+                            <button class="btn btn-secondary" onclick="printTranscript()">
+                                🖨️ Imprimer
+                            </button>
+                            <button class="btn btn-secondary" onclick="emailTranscript()">
+                                📧 Envoyer par email
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Historique des exports -->
+                    <div class="export-history">
+                        <h3>📚 Historique des exports</h3>
+                        <div class="history-list" id="exportHistory">
+                            <div class="history-empty">
+                                <p>Aucun export récent</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Pied de page -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>👨‍🎨 Créateur</h4>
+                    <p><strong>Négus Dja</strong></p>
+                    <p>Directeur Artistique</p>
+                    <p>📍 Basé en Guadeloupe</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>🎯 Spécialisé pour</h4>
+                    <p>• Ingénieurs son</p>
+                    <p>• Vidéastes</p>
+                    <p>• Créateurs avec TDAH</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>🔧 Technologies</h4>
+                    <p>• IA Whisper</p>
+                    <p>• Traitement local</p>
+                    <p>• Interface adaptative</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>📞 Contact</h4>
+                    <p>Pour vos projets audio/vidéo</p>
+                    <p>🌱 Cuisine végétalienne</p>
+                    <p>💻 Solutions code sur mesure</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Transcripteur Audio Pro - Négus Dja. Créé avec ❤️ en Guadeloupe</p>
+                <p>🔒 100% privé et local - Vos données restent chez vous</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modal de recherche/remplacement -->
+    <div class="modal" id="findReplaceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔍 Rechercher et remplacer</h3>
+                <button class="modal-close" onclick="closeFindReplace()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="findText">Rechercher:</label>
+                    <input type="text" id="findText" placeholder="Texte à rechercher">
+                </div>
+                <div class="form-group">
+                    <label for="replaceText">Remplacer par:</label>
+                    <input type="text" id="replaceText" placeholder="Nouveau texte">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="findNext()">Suivant</button>
+                    <button class="btn btn-primary" onclick="replaceAll()">Remplacer tout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de partage -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔗 Partager la transcription</h3>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-options">
+                    <button class="btn btn-primary share-btn" onclick="shareViaEmail()">
+                        📧 Email
+                    </button>
+                    <button class="btn btn-primary share-btn" onclick="shareViaWhatsApp()">
+                        💬 WhatsApp
+                    </button>
+                    <button class="btn btn-primary share-btn" onclick="generateShareLink()">
+                        🔗 Lien de partage
+                    </button>
+                    <button class="btn btn-primary share-btn" onclick="shareViaDropbox()">
+                        📁 Dropbox
+                    </button>
+                </div>
+                <div class="share-link" id="shareLink" style="display: none;">
+                    <label>Lien généré:</label>
+                    <input type="text" id="shareLinkInput" readonly>
+                    <button class="btn btn-secondary" onclick="copyShareLink()">Copier</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/audio-processor.js"></script>
+    <script src="/static/js/transcription.js"></script>
+    
+    <!-- Script d'initialisation -->
+    <script>
+        // Initialisation de l'application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎙️ Transcripteur Audio Pro - Initialisation');
+            console.log('👨‍🎨 Créé par Négus Dja - Directeur Artistique Guadeloupe');
+            console.log('🎯 Optimisé pour les ingénieurs son et vidéastes');
+            
+            // Initialiser les composants
+            initializeApp();
+            setupEventListeners();
+            checkBrowserSupport();
+            loadSettings();
+            
+            // Message de bienvenue
+            showToast('Bienvenue dans Transcripteur Audio Pro ! 🎙️', 'success');
+        });
+
+        // Vérification du support navigateur
+        function checkBrowserSupport() {
+            const features = {
+                fileAPI: window.File && window.FileReader && window.FileList && window.Blob,
+                audioAPI: window.AudioContext || window.webkitAudioContext,
+                canvas: !!document.createElement('canvas').getContext,
+                dragDrop: 'draggable' in document.createElement('span')
+            };
+
+            let unsupported = [];
+            for (let feature in features) {
+                if (!features[feature]) {
+                    unsupported.push(feature);
+                }
+            }
+
+            if (unsupported.length > 0) {
+                showToast('Certaines fonctionnalités peuvent être limitées dans ce navigateur', 'warning');
+            }
+        }
+
+        // Chargement des paramètres utilisateur
+        function loadSettings() {
+            try {
+                const settings = localStorage.getItem('transcripteur_settings');
+                if (settings) {
+                    const parsedSettings = JSON.parse(settings);
+                    
+                    // Appliquer les paramètres
+                    if (parsedSettings.language) {
+                        document.getElementById('language').value = parsedSettings.language;
+                    }
+                    if (parsedSettings.model) {
+                        document.getElementById('model').value = parsedSettings.model;
+                    }
+                    
+                    console.log('⚙️ Paramètres utilisateur chargés');
+                }
+            } catch (error) {
+                console.warn('Erreur chargement paramètres:', error);
+            }
+        }
+
+        // Sauvegarde des paramètres
+        function saveSettings() {
+            try {
+                const settings = {
+                    language: document.getElementById('language').value,
+                    model: document.getElementById('model').value,
+                    outputFormat: document.getElementById('outputFormat').value,
+                    enhanceAudio: document.getElementById('enhanceAudio').checked,
+                    addTimestamps: document.getElementById('addTimestamps').checked
+                };
+                
+                localStorage.setItem('transcripteur_settings', JSON.stringify(settings));
+            } catch (error) {
+                console.warn('Erreur sauvegarde paramètres:', error);
+            }
+        }
+
+        // Sauvegarder les paramètres lors des changements
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('#language, #model, #outputFormat, #enhanceAudio, #addTimestamps')) {
+                saveSettings();
+            }
+        });
+    </script>
+</body>
+</html>

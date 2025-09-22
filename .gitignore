@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+*.so
+.DS_Store
+.env
+.venv/
+.venv
+venv/
+env/
+*.egg-info/
+dist/
+build/
+uploads/
+temp/
+logs/
+models/
+*.log
+*.sqlite3
+__pycache__/
+/.mypy_cache
+.pytest_cache/
+*.pyc
+.ipynb_checkpoints/
+*.pem
+*.key
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Node
+node_modules/
