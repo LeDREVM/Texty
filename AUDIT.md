@@ -90,14 +90,16 @@ follow-up because completing it is net-new feature work, not a defect fix.
 
 - **[FIXED] Low**: `index.html` referenced `/static/css/style.css` but the file was `styles.css`.
   Renamed the file to match.
-- **[REPORTED] High — missing JS modules**: `index.html` loads `/static/js/audio-processor.js`
-  and `/static/js/transcription.js`, **neither of which exists**. Functions they must provide —
-  e.g. `startTranscription()`, `analyzeAudioQuality()`, `loadCurrentEnhancementSettings()`,
-  `updateExportPreview()` — are called from `app.js` but defined nowhere, so the Transcribe /
-  quality-analysis / export actions fail client-side. Completing these modules is feature work
-  and needs the intended DOM contract; it was **not** implemented here.
-- **[REPORTED] Medium — empty stylesheet**: `static/css/style.css` is 0 bytes, so no styling
-  ships. Needs a real stylesheet.
+- **[FIXED] High — missing JS modules**: `audio-processor.js` and `transcription.js` (previously
+  absent) are now implemented, plus a new `dictionary.js`. All inline `onclick`/`onkeydown`
+  handlers and the deferred calls from `app.js` (`startTranscription`, `analyzeAudioQuality`,
+  `loadCurrentEnhancementSettings`, `updateExportPreview`, export/share funcs, …) now resolve —
+  verified by a handler-vs-definition cross-check and a headless-Chromium render (no load-time
+  JS errors; page initializes and the dictionary tab renders).
+- **[FIXED] Medium — empty stylesheet**: `static/css/style.css` is now a full responsive
+  stylesheet (teal/coral palette, light + dark) covering every component.
+- **[NEW] Dictionnaire tab**: a 6th tab wires the Creole dictionary API into the UI
+  (search, direction toggle, exact/partial mode, category chips).
 
 ## Code quality
 

@@ -49,6 +49,9 @@
             <button class="tab" onclick="showTab('export')" id="tab-export">
                 📤 Export & Partage
             </button>
+            <button class="tab" onclick="showTab('dictionnaire')" id="tab-dictionnaire">
+                📖 Dictionnaire Kréyòl
+            </button>
         </nav>
 
         <main class="main-content">
@@ -559,6 +562,42 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Onglet 6: Dictionnaire français <-> créole guadeloupéen -->
+            <section id="dictionnaire" class="tab-content">
+                <h2>📖 Dictionnaire français ↔ créole guadeloupéen</h2>
+
+                <div class="dictionary-search">
+                    <div class="form-group">
+                        <label for="dictQuery">🔎 Mot à rechercher</label>
+                        <input type="text" id="dictQuery" placeholder="ex. bonjour, dlo, merci…"
+                               onkeydown="if(event.key==='Enter') dictionaryLookup()">
+                    </div>
+                    <div class="form-group">
+                        <label for="dictDirection">Sens</label>
+                        <select id="dictDirection">
+                            <option value="fr-cr">Français → Créole</option>
+                            <option value="cr-fr">Créole → Français</option>
+                            <option value="auto">Automatique</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dictMode">Recherche</label>
+                        <select id="dictMode">
+                            <option value="exact">Exacte</option>
+                            <option value="search">Partielle</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="dictionaryLookup()">Chercher</button>
+                    <button class="btn btn-secondary" onclick="dictionaryShowAll()">Tout afficher</button>
+                </div>
+
+                <div class="dict-categories" id="dictCategories"></div>
+                <div class="dictionary-results" id="dictionaryResults">
+                    <p class="dict-empty">Saisissez un mot ou parcourez une catégorie.</p>
+                </div>
+                <div class="dict-warning" id="dictWarning" style="display: none;"></div>
+            </section>
         </main>
 
         <!-- Pied de page -->
@@ -663,6 +702,7 @@
     <script src="/static/js/app.js"></script>
     <script src="/static/js/audio-processor.js"></script>
     <script src="/static/js/transcription.js"></script>
+    <script src="/static/js/dictionary.js"></script>
     
     <!-- Script d'initialisation -->
     <script>
