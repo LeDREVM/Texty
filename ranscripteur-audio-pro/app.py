@@ -33,6 +33,7 @@ from utils.audio_processor import AudioProcessor
 from utils.transcription_engine import TranscriptionEngine
 from utils.format_converter import FormatConverter
 from utils.creole_dictionary import CreoleDictionary
+from utils.translator import Translator
 
 # Créer les dossiers nécessaires AVANT de configurer le logging (sinon le
 # FileHandler échoue sur un dépôt fraîchement cloné où logs/ n'existe pas encore)
@@ -113,9 +114,11 @@ audio_processor = AudioProcessor()
 transcription_engine = TranscriptionEngine()
 format_converter = FormatConverter()
 creole_dictionary = CreoleDictionary()
+translator = Translator(creole_dictionary)
 
 # Directions de traduction autorisées pour le dictionnaire
 DICTIONARY_DIRECTIONS = {'fr-cr', 'cr-fr', 'auto'}
+TRANSLATE_DIRECTIONS = {'fr-cr', 'cr-fr'}
 
 def allowed_file(filename: str) -> bool:
     """Vérifie si le type de fichier est autorisé"""
@@ -421,6 +424,34 @@ def dictionary_lookup():
     except Exception:
         logger.exception("Erreur dictionnaire")
         return jsonify({"error": "Erreur du dictionnaire"}), 500
+
+@app.route('/api/translate', methods=['POST'])
+def translate_text():
+    """
+    Traduit un texte français <-> créole guadeloupéen.
+
+    JSON: { "text": "...", "direction": "fr-cr" | "cr-fr" }
+    Utilise le modèle NLLB affiné s'il est disponible, sinon le repli dictionnaire.
+    """
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Corps JSON invalide ou manquant"}), 400
+
+    text = (data.get('text') or '').strip()
+    if not text:
+        return jsonify({"error": "Texte vide"}), 400
+
+    direction = data.get('direction', 'fr-cr')
+    if direction not in TRANSLATE_DIRECTIONS:
+        return jsonify({"error": "Direction invalide (fr-cr ou cr-fr)"}), 400
+
+    try:
+        result = translator.translate(text, direction)
+        result.update({"success": True, "direction": direction, "source": text})
+        return jsonify(result)
+    except Exception:
+        logger.exception("Erreur de traduction")
+        return jsonify({"error": "Erreur de traduction"}), 500
 
 @app.route('/api/dictionary/all', methods=['GET'])
 def dictionary_all():

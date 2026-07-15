@@ -277,10 +277,22 @@ GET /api/dictionary?q=dlo&direction=cr-fr            # créole -> français
 GET /api/dictionary?q=man&mode=search                # recherche partielle
 GET /api/dictionary/all                              # lexique complet
 GET /api/dictionary/all?category=verbes              # par catégorie
+
+# Traduction fr <-> créole (modèle NLLB si présent, sinon repli dictionnaire)
+POST /api/translate
+  - JSON : { "text": "Bonjour, merci", "direction": "fr-cr" }
 ```
 
 > ⚠️ Le lexique créole (`data/creole_gwada.json`) est un **lexique de départ**, non
 > exhaustif, à faire valider et enrichir par des locuteurs natifs.
+
+## 🌐 Traduction & entraînement (fr ↔ créole)
+
+`POST /api/translate` traduit entre le français et le créole guadeloupéen. Par défaut,
+sans modèle entraîné, il utilise un **repli dictionnaire + règles** (traduction mot à
+mot approximative). Pour une vraie traduction de phrases, entraînez un modèle NLLB :
+voir **[`training/README.md`](training/README.md)** (collecte de corpus parallèle,
+fine-tuning sur GPU, évaluation chrF/BLEU, mise en service via `TRANSLATION_MODEL_DIR`).
 
 ## 🔍 Dépannage
 
