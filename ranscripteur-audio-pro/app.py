@@ -7,17 +7,23 @@ Optimisé pour l'hébergement sur Hostinger
 """
 
 import os
-import io
-import json
-import tempfile
+import sys
+import uuid
 import logging
+from io import BytesIO
 from pathlib import Path
-from typing import Optional, Dict, Any
-import asyncio
 from datetime import datetime
 
+# Chemins de base, indépendants du répertoire de travail courant (CWD)
+BASE_DIR = Path(__file__).resolve().parent      # .../ranscripteur-audio-pro
+REPO_ROOT = BASE_DIR.parent                      # racine du dépôt
+
+# Rendre le package 'utils' (situé à la racine du dépôt) importable quel que soit le CWD
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 # Framework web
-from flask import Flask, request, jsonify, send_file, render_template, send_from_directory
+from flask import Flask, request, jsonify, send_file, render_template
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -27,30 +33,42 @@ from utils.audio_processor import AudioProcessor
 from utils.transcription_engine import TranscriptionEngine
 from utils.format_converter import FormatConverter
 
+# Créer les dossiers nécessaires AVANT de configurer le logging (sinon le
+# FileHandler échoue sur un dépôt fraîchement cloné où logs/ n'existe pas encore)
+UPLOAD_FOLDER = BASE_DIR / 'uploads'
+TEMP_FOLDER = BASE_DIR / 'temp'
+MODELS_FOLDER = BASE_DIR / 'models'
+LOGS_FOLDER = BASE_DIR / 'logs'
+for _folder in (UPLOAD_FOLDER, TEMP_FOLDER, MODELS_FOLDER, LOGS_FOLDER):
+    _folder.mkdir(parents=True, exist_ok=True)
+
 # Configuration logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/app.log'),
+        logging.FileHandler(LOGS_FOLDER / 'app.log'),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-# Initialisation Flask
-app = Flask(__name__)
-CORS(app)
+# Initialisation Flask : templates dans ./templates, fichiers statiques à la racine du dépôt
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / 'templates'),
+    static_folder=str(REPO_ROOT / 'static'),
+)
+
+# CORS restreint : par défaut même origine / localhost, surchargeable via CORS_ORIGINS
+_cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5000,http://127.0.0.1:5000')
+CORS(app, origins=[o.strip() for o in _cors_origins.split(',') if o.strip()])
 
 # Configuration
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['TEMP_FOLDER'] = 'temp'
-app.config['MODELS_FOLDER'] = 'models'
-
-# Créer les dossiers nécessaires
-for folder in ['uploads', 'temp', 'models', 'logs']:
-    os.makedirs(folder, exist_ok=True)
+app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_FILE_SIZE', str(100 * 1024 * 1024)))
+app.config['UPLOAD_FOLDER'] = str(UPLOAD_FOLDER)
+app.config['TEMP_FOLDER'] = str(TEMP_FOLDER)
+app.config['MODELS_FOLDER'] = str(MODELS_FOLDER)
 
 # Types de fichiers autorisés
 ALLOWED_EXTENSIONS = {
@@ -86,6 +104,9 @@ WHISPER_MODELS = {
     'large': 'Maximum de précision'
 }
 
+# Formats de sortie autorisés pour la conversion
+OUTPUT_FORMATS = {'text', 'srt', 'vtt', 'json', 'docx', 'csv'}
+
 # Instances globales
 audio_processor = AudioProcessor()
 transcription_engine = TranscriptionEngine()
@@ -93,21 +114,33 @@ format_converter = FormatConverter()
 
 def allowed_file(filename: str) -> bool:
     """Vérifie si le type de fichier est autorisé"""
-    if '.' not in filename:
+    if not filename or '.' not in filename:
         return False
-    
+
     extension = filename.rsplit('.', 1)[1].lower()
     return extension in ALLOWED_EXTENSIONS['audio'] or extension in ALLOWED_EXTENSIONS['video']
+
+def parse_float(value, default: float, minimum: float = None, maximum: float = None) -> float:
+    """Convertit une valeur de formulaire en float, avec bornes ; ValueError si invalide."""
+    try:
+        result = float(value) if value is not None else float(default)
+    except (TypeError, ValueError):
+        raise ValueError(f"Valeur numérique invalide: {value!r}")
+    if minimum is not None:
+        result = max(minimum, result)
+    if maximum is not None:
+        result = min(maximum, result)
+    return result
+
+def safe_temp_path(prefix: str, filename: str) -> str:
+    """Construit un chemin temporaire unique (évite les collisions entre requêtes)."""
+    safe_name = secure_filename(filename) or 'audio'
+    return os.path.join(app.config['TEMP_FOLDER'], f"{prefix}_{uuid.uuid4().hex}_{safe_name}")
 
 @app.route('/')
 def index():
     """Page d'accueil"""
     return render_template('index.html')
-
-@app.route('/static/<path:filename>')
-def static_files(filename):
-    """Servir les fichiers statiques"""
-    return send_from_directory('static', filename)
 
 @app.route('/api/health')
 def health_check():
@@ -140,23 +173,32 @@ def transcribe_audio():
         if not allowed_file(file.filename):
             return jsonify({"error": "Type de fichier non supporté"}), 400
         
-        # Paramètres de transcription
+        # Paramètres de transcription (validés)
         language = request.form.get('language', 'fr')
+        if language not in SUPPORTED_LANGUAGES:
+            language = 'fr'
         model_size = request.form.get('model', 'small')
+        if model_size not in WHISPER_MODELS:
+            model_size = 'small'
+        output_format = request.form.get('format', 'text')
+        if output_format not in OUTPUT_FORMATS:
+            return jsonify({"error": "Format de sortie non supporté"}), 400
         enable_speakers = request.form.get('speakers', 'false').lower() == 'true'
         enhance_audio = request.form.get('enhance', 'false').lower() == 'true'
-        output_format = request.form.get('format', 'text')
-        
+
         # Paramètres d'amélioration audio
-        noise_reduction = float(request.form.get('noise_reduction', 0.5))
-        amplification = float(request.form.get('amplification', 0))
+        try:
+            noise_reduction = parse_float(request.form.get('noise_reduction'), 0.5, 0.0, 1.0)
+            amplification = parse_float(request.form.get('amplification'), 0, -30.0, 30.0)
+        except ValueError as ve:
+            return jsonify({"error": str(ve)}), 400
         normalize_audio = request.form.get('normalize', 'true').lower() == 'true'
-        
+
         logger.info(f"Début transcription: {file.filename}, langue: {language}, modèle: {model_size}")
-        
-        # Sauvegarder le fichier temporairement
+
+        # Sauvegarder le fichier temporairement (nom unique pour éviter les collisions)
         filename = secure_filename(file.filename)
-        temp_input = os.path.join(app.config['TEMP_FOLDER'], f"input_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}")
+        temp_input = safe_temp_path('input', file.filename)
         file.save(temp_input)
         
         try:
@@ -209,110 +251,119 @@ def transcribe_audio():
                     logger.warning(f"Impossible de supprimer {file_path}: {e}")
             
     except RequestEntityTooLarge:
-        return jsonify({"error": "Fichier trop volumineux (max 100MB)"}), 413
-    except Exception as e:
-        logger.error(f"Erreur lors de la transcription: {e}")
+        limit_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+        return jsonify({"error": f"Fichier trop volumineux (max {limit_mb}MB)"}), 413
+    except Exception:
+        logger.exception("Erreur lors de la transcription")
         return jsonify({
             "success": False,
-            "error": f"Erreur de traitement: {str(e)}"
+            "error": "Erreur de traitement"
         }), 500
+
+def _send_temp_file(path: str, download_name: str):
+    """Lit un fichier temporaire en mémoire et le renvoie, pour pouvoir le supprimer
+    immédiatement sans risquer d'interrompre le flux de téléchargement (send_file paresseux)."""
+    with open(path, 'rb') as fh:
+        data = BytesIO(fh.read())
+    return send_file(
+        data,
+        as_attachment=True,
+        download_name=download_name,
+        mimetype='audio/wav'
+    )
+
+def _cleanup(*paths):
+    for file_path in paths:
+        if not file_path:
+            continue
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except OSError as e:
+            logger.warning(f"Impossible de supprimer {file_path}: {e}")
 
 @app.route('/api/enhance', methods=['POST'])
 def enhance_audio_endpoint():
     """Endpoint pour l'amélioration audio uniquement"""
+    temp_input = enhanced_path = None
     try:
         if 'audio' not in request.files:
             return jsonify({"error": "Aucun fichier audio fourni"}), 400
-        
+
         file = request.files['audio']
         if not allowed_file(file.filename):
             return jsonify({"error": "Type de fichier non supporté"}), 400
-        
-        # Paramètres d'amélioration
-        noise_reduction = float(request.form.get('noise_reduction', 0.5))
-        amplification = float(request.form.get('amplification', 0))
+
+        # Paramètres d'amélioration (validés)
+        try:
+            noise_reduction = parse_float(request.form.get('noise_reduction'), 0.5, 0.0, 1.0)
+            amplification = parse_float(request.form.get('amplification'), 0, -30.0, 30.0)
+        except ValueError as ve:
+            return jsonify({"error": str(ve)}), 400
         normalize_audio = request.form.get('normalize', 'true').lower() == 'true'
-        
+
         # Sauvegarder et traiter
         filename = secure_filename(file.filename)
-        temp_input = os.path.join(app.config['TEMP_FOLDER'], f"enhance_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}")
+        temp_input = safe_temp_path('enhance', file.filename)
         file.save(temp_input)
-        
-        try:
-            # Améliorer l'audio
-            enhanced_path = audio_processor.enhance_audio_file(
-                temp_input, noise_reduction, amplification, normalize_audio
-            )
-            
-            # Retourner le fichier amélioré
-            return send_file(
-                enhanced_path,
-                as_attachment=True,
-                download_name=f"enhanced_{filename}",
-                mimetype='audio/wav'
-            )
-            
-        finally:
-            # Nettoyage
-            for file_path in [temp_input, enhanced_path]:
-                try:
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                except:
-                    pass
-            
-    except Exception as e:
-        logger.error(f"Erreur d'amélioration: {e}")
-        return jsonify({"error": f"Erreur de traitement: {str(e)}"}), 500
+
+        # Améliorer l'audio
+        enhanced_path = audio_processor.enhance_audio_file(
+            temp_input, noise_reduction, amplification, normalize_audio
+        )
+
+        # Retourner le fichier amélioré (chargé en mémoire avant nettoyage)
+        return _send_temp_file(enhanced_path, f"enhanced_{filename}")
+
+    except Exception:
+        logger.exception("Erreur d'amélioration")
+        return jsonify({"error": "Erreur de traitement"}), 500
+    finally:
+        _cleanup(temp_input, enhanced_path)
 
 @app.route('/api/extract_segment', methods=['POST'])
 def extract_audio_segment():
     """Endpoint pour extraire un segment audio"""
+    temp_input = segment_path = None
     try:
         if 'audio' not in request.files:
             return jsonify({"error": "Aucun fichier audio fourni"}), 400
-        
+
         file = request.files['audio']
-        start_time = float(request.form.get('start_time', 0))
-        end_time = float(request.form.get('end_time', 0))
-        
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Type de fichier non supporté"}), 400
+
+        try:
+            start_time = parse_float(request.form.get('start_time'), 0, 0.0)
+            end_time = parse_float(request.form.get('end_time'), 0, 0.0)
+        except ValueError as ve:
+            return jsonify({"error": str(ve)}), 400
+
         if end_time <= start_time:
             return jsonify({"error": "Temps de fin doit être supérieur au temps de début"}), 400
-        
+
         # Sauvegarder le fichier temporairement
         filename = secure_filename(file.filename)
-        temp_input = os.path.join(app.config['TEMP_FOLDER'], f"segment_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}")
+        temp_input = safe_temp_path('segment', file.filename)
         file.save(temp_input)
-        
-        try:
-            # Extraire le segment
-            segment_path = audio_processor.extract_segment(
-                temp_input, start_time, end_time
-            )
-            
-            if not segment_path:
-                return jsonify({"error": "Impossible d'extraire le segment"}), 500
-            
-            # Retourner le segment
-            return send_file(
-                segment_path,
-                as_attachment=True,
-                download_name=f"segment_{start_time:.1f}s-{end_time:.1f}s_{filename}",
-                mimetype='audio/wav'
-            )
-            
-        finally:
-            # Nettoyage
-            for file_path in [temp_input, segment_path]:
-                try:
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                except:
-                    pass
-            
-    except Exception as e:
-        logger.error(f"Erreur d'extraction: {e}")
-        return jsonify({"error": f"Erreur de traitement: {str(e)}"}), 500
+
+        # Extraire le segment
+        segment_path = audio_processor.extract_segment(temp_input, start_time, end_time)
+
+        if not segment_path:
+            return jsonify({"error": "Impossible d'extraire le segment"}), 500
+
+        # Retourner le segment (chargé en mémoire avant nettoyage)
+        return _send_temp_file(
+            segment_path,
+            f"segment_{start_time:.1f}s-{end_time:.1f}s_{filename}"
+        )
+
+    except Exception:
+        logger.exception("Erreur d'extraction")
+        return jsonify({"error": "Erreur de traitement"}), 500
+    finally:
+        _cleanup(temp_input, segment_path)
 
 @app.route('/api/formats', methods=['GET'])
 def get_supported_formats():
@@ -322,41 +373,48 @@ def get_supported_formats():
         "video_formats": list(ALLOWED_EXTENSIONS['video']),
         "languages": SUPPORTED_LANGUAGES,
         "models": WHISPER_MODELS,
-        "output_formats": ["text", "srt", "vtt", "json"]
+        "output_formats": sorted(OUTPUT_FORMATS)
     })
 
 @app.route('/api/convert_format', methods=['POST'])
 def convert_transcript_format():
     """Convertit un transcript vers différents formats"""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"error": "Corps JSON invalide ou manquant"}), 400
+
         text = data.get('text', '')
         segments = data.get('segments', [])
-        output_format = data.get('format', 'txt')
-        
+        output_format = data.get('format', 'text')
+
         if not text:
             return jsonify({"error": "Texte vide"}), 400
-        
+        if output_format not in OUTPUT_FORMATS:
+            return jsonify({"error": "Format de sortie non supporté"}), 400
+
         result = format_converter.convert(text, segments, output_format)
-        
+
         return jsonify({
             "success": True,
             "content": result,
             "format": output_format
         })
-        
-    except Exception as e:
-        logger.error(f"Erreur de conversion: {e}")
-        return jsonify({"error": f"Erreur de conversion: {str(e)}"}), 500
+
+    except Exception:
+        logger.exception("Erreur de conversion")
+        return jsonify({"error": "Erreur de conversion"}), 500
 
 @app.route('/api/stats')
 def get_stats():
     """Statistiques de l'application"""
     try:
-        # Compter les fichiers dans les dossiers
-        uploads_count = len([f for f in os.listdir('uploads') if os.path.isfile(os.path.join('uploads', f))])
-        temp_count = len([f for f in os.listdir('temp') if os.path.isfile(os.path.join('temp', f))])
-        
+        # Compter les fichiers dans les dossiers (chemins ancrés sur BASE_DIR)
+        uploads_dir = app.config['UPLOAD_FOLDER']
+        temp_dir = app.config['TEMP_FOLDER']
+        uploads_count = len([f for f in os.listdir(uploads_dir) if os.path.isfile(os.path.join(uploads_dir, f))])
+        temp_count = len([f for f in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, f))])
+
         return jsonify({
             "uploads_count": uploads_count,
             "temp_files": temp_count,
@@ -364,14 +422,16 @@ def get_stats():
             "uptime": "Running",
             "author": "Négus Dja - Directeur Artistique Guadeloupe"
         })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception("Erreur stats")
+        return jsonify({"error": "Erreur interne"}), 500
 
 # Gestion des erreurs
 @app.errorhandler(413)
 def file_too_large(error):
     """Gestion des fichiers trop volumineux"""
-    return jsonify({"error": "Fichier trop volumineux (limite: 100MB)"}), 413
+    limit_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+    return jsonify({"error": f"Fichier trop volumineux (limite: {limit_mb}MB)"}), 413
 
 @app.errorhandler(500)
 def internal_error(error):

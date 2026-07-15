@@ -10,10 +10,10 @@ Ressources utiles
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r Requirements.txt
+pip install -r requirements.txt
 cd ranscripteur-audio-pro
 export FLASK_APP=app.py
-export FLASK_DEBUG=true
+export FLASK_DEBUG=true   # développement local uniquement — ne jamais activer en production
 flask run
 ```
 
@@ -172,12 +172,12 @@ L'application sera accessible sur `http://localhost:5000`
 Créer un fichier `.env` :
 
 ```env
-FLASK_ENV=production
+# Production : laisser le debug désactivé (FLASK_DEBUG absent ou False)
+FLASK_DEBUG=False
 PORT=5000
-MAX_FILE_SIZE=52428800
+MAX_FILE_SIZE=104857600            # taille max en octets (100 Mo) — lu par l'app
+CORS_ORIGINS=https://votre-domaine.example   # origines autorisées (séparées par des virgules)
 WHISPER_MODEL_DIR=./models
-TEMP_DIR=./temp
-UPLOAD_DIR=./uploads
 ```
 
 ### Installation des dépendances

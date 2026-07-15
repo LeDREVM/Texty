@@ -715,20 +715,32 @@ function showToast(message, type = 'info', duration = CONFIG.toastDuration) {
     
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     const icon = {
         'success': '✅',
         'error': '❌',
         'warning': '⚠️',
         'info': 'ℹ️'
     }[type] || 'ℹ️';
-    
-    toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
-        <span class="toast-message">${message}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
-    `;
-    
+
+    // Construction sans innerHTML : le message peut contenir des données
+    // fournies par l'utilisateur (ex. nom de fichier) -> on utilise textContent
+    // pour éviter toute injection HTML/JS (XSS).
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'toast-icon';
+    iconSpan.textContent = icon;
+
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'toast-message';
+    messageSpan.textContent = message;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => toast.remove());
+
+    toast.append(iconSpan, messageSpan, closeBtn);
+
     container.appendChild(toast);
     
     // Auto-suppression
@@ -912,14 +924,22 @@ function showAutoSuggestions() {
     ];
     
     suggestionsList.innerHTML = '';
-    
+
     autoSuggestions.forEach(item => {
         const div = document.createElement('div');
         div.className = 'suggestion-item';
-        div.innerHTML = `
-            <span class="suggestion-text">${item.suggestion}</span>
-            <button class="btn btn-small" onclick="(${item.action.toString()})()">Appliquer</button>
-        `;
+
+        const text = document.createElement('span');
+        text.className = 'suggestion-text';
+        text.textContent = item.suggestion;
+
+        // Handler attaché directement (pas d'injection de code via toString/onclick)
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-small';
+        btn.textContent = 'Appliquer';
+        btn.addEventListener('click', item.action);
+
+        div.append(text, btn);
         suggestionsList.appendChild(div);
     });
     
