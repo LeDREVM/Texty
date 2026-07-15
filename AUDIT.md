@@ -128,3 +128,41 @@ transcription path — the sandbox has no network egress to install Flask/numpy/
 Once `pip install -r requirements.txt` succeeds, verify:
 `GET /` (renders), `GET /static/js/app.js` (200), `GET /api/health` & `/api/formats` (200),
 `POST /api/convert_format` with an empty body (400, not 500).
+
+---
+
+## Addendum — second pass & new feature
+
+### Second audit pass (additional fixes)
+
+- **[FIXED] Whisper model path**: `download_root="./models"` was CWD-relative and ignored the
+  `WHISPER_MODEL_DIR` env var documented in the README. `transcription_engine.py` now reads
+  `WHISPER_MODEL_DIR` (default `./models`) via a module-level `MODEL_DIR`.
+- **[REPORTED] Frontend still incomplete**: the missing `transcription.js` / `audio-processor.js`
+  modules and empty `style.css` remain open (net-new feature work; unchanged by this pass).
+
+### New feature — French ↔ Guadeloupean Creole dictionary
+
+Aligns with the README roadmap (v2.0, "Support des langues créoles — focus Guadeloupe").
+
+- **`data/creole_gwada.json`** — curated **starter** lexicon (94 entries) across 9 categories
+  (salutations, pronoms, noms, verbes, adjectifs, grammaire incl. the `ka/ké/té` markers,
+  nombres, culture, expressions). Explicitly labeled as non-exhaustive, to be validated/expanded
+  by native speakers; orthography is GEREC-style and variants are noted per entry.
+- **`utils/creole_dictionary.py`** — `CreoleDictionary` (stdlib only, unit-tested): accent/case-
+  insensitive `lookup(term, direction)` for `fr-cr` / `cr-fr` / `auto`, partial `search()`,
+  `by_category()`, `categories()`, `stats()`, and `add_entry(persist=…)`.
+- **API** (in `app.py`):
+  - `GET /api/dictionary?q=…&direction=fr-cr|cr-fr|auto&mode=exact|search`
+  - `GET /api/dictionary/all[?category=…]`
+  - dictionary stats surfaced in `GET /api/health`.
+
+**Verified here (stdlib, no deps needed):** `py_compile` clean across the codebase; the
+`CreoleDictionary` unit tests pass (exact lookup both directions with accent folding, partial
+search, category filter, add-entry, invalid-direction rejection). The HTTP layer around it is
+thin and shares the audited validation/error patterns; live-boot verification still requires the
+Flask/ML deps unavailable in this sandbox.
+
+**Not implemented (by design)**: a dictionary UI tab — the frontend is already missing its JS
+modules, so adding UI now would sit on broken foundations. The backend + data are complete and
+callable; the UI can be added when the frontend modules are built.

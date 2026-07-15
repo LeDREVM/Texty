@@ -32,6 +32,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from utils.audio_processor import AudioProcessor
 from utils.transcription_engine import TranscriptionEngine
 from utils.format_converter import FormatConverter
+from utils.creole_dictionary import CreoleDictionary
 
 # Créer les dossiers nécessaires AVANT de configurer le logging (sinon le
 # FileHandler échoue sur un dépôt fraîchement cloné où logs/ n'existe pas encore)
@@ -111,6 +112,10 @@ OUTPUT_FORMATS = {'text', 'srt', 'vtt', 'json', 'docx', 'csv'}
 audio_processor = AudioProcessor()
 transcription_engine = TranscriptionEngine()
 format_converter = FormatConverter()
+creole_dictionary = CreoleDictionary()
+
+# Directions de traduction autorisées pour le dictionnaire
+DICTIONARY_DIRECTIONS = {'fr-cr', 'cr-fr', 'auto'}
 
 def allowed_file(filename: str) -> bool:
     """Vérifie si le type de fichier est autorisé"""
@@ -153,7 +158,8 @@ def health_check():
         "engines": transcription_engine.get_available_engines(),
         "languages": list(SUPPORTED_LANGUAGES.keys()),
         "models": list(WHISPER_MODELS.keys()),
-        "max_file_size_mb": app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+        "max_file_size_mb": app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024),
+        "creole_dictionary": creole_dictionary.stats()
     })
 
 @app.route('/api/transcribe', methods=['POST'])
@@ -375,6 +381,64 @@ def get_supported_formats():
         "models": WHISPER_MODELS,
         "output_formats": sorted(OUTPUT_FORMATS)
     })
+
+@app.route('/api/dictionary', methods=['GET'])
+def dictionary_lookup():
+    """
+    Dictionnaire français <-> créole guadeloupéen.
+
+    Query params:
+        q         : mot ou expression à rechercher (obligatoire)
+        direction : 'fr-cr' (défaut), 'cr-fr' ou 'auto'
+        mode      : 'exact' (défaut) ou 'search' (recherche partielle)
+    """
+    query = (request.args.get('q') or '').strip()
+    if not query:
+        return jsonify({"error": "Paramètre 'q' requis"}), 400
+
+    direction = request.args.get('direction', 'fr-cr')
+    if direction not in DICTIONARY_DIRECTIONS:
+        return jsonify({"error": "Direction invalide (fr-cr, cr-fr ou auto)"}), 400
+
+    mode = request.args.get('mode', 'exact')
+    if mode not in ('exact', 'search'):
+        return jsonify({"error": "Mode invalide (exact ou search)"}), 400
+
+    try:
+        if mode == 'search':
+            results = creole_dictionary.search(query)
+        else:
+            results = creole_dictionary.lookup(query, direction)
+
+        return jsonify({
+            "success": True,
+            "query": query,
+            "direction": direction,
+            "mode": mode,
+            "count": len(results),
+            "results": results
+        })
+    except Exception:
+        logger.exception("Erreur dictionnaire")
+        return jsonify({"error": "Erreur du dictionnaire"}), 500
+
+@app.route('/api/dictionary/all', methods=['GET'])
+def dictionary_all():
+    """Retourne le lexique complet (ou une catégorie via ?category=...)."""
+    try:
+        category = request.args.get('category')
+        entries = (creole_dictionary.by_category(category)
+                   if category else creole_dictionary.all_entries())
+        return jsonify({
+            "success": True,
+            "meta": creole_dictionary.get_meta(),
+            "categories": creole_dictionary.categories(),
+            "count": len(entries),
+            "entries": entries
+        })
+    except Exception:
+        logger.exception("Erreur dictionnaire (all)")
+        return jsonify({"error": "Erreur du dictionnaire"}), 500
 
 @app.route('/api/convert_format', methods=['POST'])
 def convert_transcript_format():

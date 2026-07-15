@@ -270,7 +270,17 @@ POST /api/convert_format
 
 # Formats supportés
 GET /api/formats
+
+# Dictionnaire français <-> créole guadeloupéen
+GET /api/dictionary?q=bonjour&direction=fr-cr        # français -> créole
+GET /api/dictionary?q=dlo&direction=cr-fr            # créole -> français
+GET /api/dictionary?q=man&mode=search                # recherche partielle
+GET /api/dictionary/all                              # lexique complet
+GET /api/dictionary/all?category=verbes              # par catégorie
 ```
+
+> ⚠️ Le lexique créole (`data/creole_gwada.json`) est un **lexique de départ**, non
+> exhaustif, à faire valider et enrichir par des locuteurs natifs.
 
 ## 🔍 Dépannage
 

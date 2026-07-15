@@ -43,6 +43,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Répertoire de téléchargement des modèles (configurable, cf. README / .env)
+MODEL_DIR = os.getenv('WHISPER_MODEL_DIR', './models')
+
 class TranscriptionEngine:
     """Moteur de transcription avec support multiple d'engines"""
     
@@ -145,7 +148,7 @@ class TranscriptionEngine:
                     model_size,
                     device=device,
                     compute_type=compute_type,
-                    download_root="./models"
+                    download_root=MODEL_DIR
                 )
                 
                 self.models["faster_whisper"] = model
@@ -157,7 +160,7 @@ class TranscriptionEngine:
                 
                 model = whisper.load_model(
                     model_size,
-                    download_root="./models"
+                    download_root=MODEL_DIR
                 )
                 
                 self.models["whisper"] = model
