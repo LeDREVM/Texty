@@ -38,5 +38,7 @@ USER user
 EXPOSE 7860
 
 # Port flexible : Render fournit $PORT (ex. 10000), HF Spaces utilise 7860.
-# Timeout élevé (transcription CPU longue), 1 worker (mémoire).
-CMD ["sh", "-c", "gunicorn wsgi:application --bind 0.0.0.0:${PORT:-7860} --workers 1 --timeout 300"]
+# --timeout 1800 : la transcription CPU d'un fichier long peut durer longtemps
+#   (sinon gunicorn tue le worker et la requête échoue en « failed to fetch »).
+# --graceful-timeout 30 : redémarrage plus propre (évite le port bloqué).
+CMD ["sh", "-c", "gunicorn wsgi:application --bind 0.0.0.0:${PORT:-7860} --workers 1 --timeout 1800 --graceful-timeout 30"]
