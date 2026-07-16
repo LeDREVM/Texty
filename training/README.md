@@ -111,7 +111,15 @@ viser idéalement **plusieurs heures** d'audio transcrit. Pistes :
 **Format** : `data/creole_asr_manifest.csv`, colonnes `audio_path,text` (audio 16 kHz mono
 de préférence). Une ligne = un extrait + sa transcription.
 
-## Étapes
+## 🚀 Le plus simple : le notebook Colab clé en main
+
+Ouvre **`training/whisper_creole_colab.ipynb`** dans Google Colab
+(Runtime ▸ GPU), mets tes audios + un `manifest.csv` (`audio_path,text`) dans un
+dossier Google Drive, puis **Exécution ▸ Tout exécuter**. Il installe tout, entraîne,
+évalue (WER), convertit au format faster-whisper et te fait télécharger le modèle.
+Les étapes manuelles ci-dessous sont l'équivalent en ligne de commande.
+
+## Étapes (équivalent CLI)
 
 ### 1. Préparer les données (partout, sans GPU)
 ```bash
