@@ -52,6 +52,9 @@
             <button class="tab" onclick="showTab('dictionnaire')" id="tab-dictionnaire">
                 📖 Dictionnaire Kréyòl
             </button>
+            <button class="tab" onclick="showTab('sequences')" id="tab-sequences">
+                📋 Séquences
+            </button>
         </nav>
 
         <main class="main-content">
@@ -622,6 +625,34 @@
                     <div class="translate-output" id="translateOutput" style="display: none;"></div>
                 </div>
             </section>
+
+            <!-- Onglet 7: Séquences (découpage + playlist + transcription en lot) -->
+            <section id="sequences" class="tab-content">
+                <h2>📋 Séquences à transcrire</h2>
+                <p class="help-text">
+                    Découpe l'audio chargé en séquences numérotées, transcris-les en lot,
+                    corrige, puis exporte <code>manifest.csv</code> + les audios
+                    (idéal pour constituer un jeu de données d'entraînement).
+                </p>
+
+                <div class="seq-controls">
+                    <label>Durée par séquence :
+                        <input type="number" id="segDuration" min="5" max="30" value="30"> s
+                    </label>
+                    <button class="btn btn-primary" onclick="autoSplitAudio()">✂️ Découper automatiquement</button>
+                    <button class="btn btn-secondary" onclick="addSelectionToPlaylist()">➕ Ajouter la sélection courante</button>
+                </div>
+
+                <div class="seq-list" id="seqList">
+                    <p class="dict-empty">Charge un audio (onglet Import) puis « Découper automatiquement ».</p>
+                </div>
+
+                <div class="seq-global-actions" id="seqActions" style="display: none;">
+                    <button class="btn btn-primary" onclick="transcribeQueue()" id="seqTranscribeBtn">🚀 Tout transcrire</button>
+                    <button class="btn btn-secondary" onclick="exportPlaylistManifest()">📥 Exporter manifest + audios</button>
+                    <button class="btn btn-secondary" onclick="clearPlaylist()">Vider</button>
+                </div>
+            </section>
         </main>
 
         <!-- Pied de page -->
@@ -728,6 +759,7 @@
     <script defer src="/static/js/audio-processor.js"></script>
     <script defer src="/static/js/transcription.js"></script>
     <script defer src="/static/js/dictionary.js"></script>
+    <script defer src="/static/js/playlist.js"></script>
     
     <!-- Script d'initialisation -->
     <script>
