@@ -8,8 +8,10 @@ Optimisé pour l'hébergement sur Hostinger
 
 import os
 import sys
+import time
 import uuid
 import logging
+import threading
 from io import BytesIO
 from pathlib import Path
 from datetime import datetime
@@ -120,6 +122,53 @@ translator = Translator(creole_dictionary)
 # Directions de traduction autorisées pour le dictionnaire
 DICTIONARY_DIRECTIONS = {'fr-cr', 'cr-fr', 'auto'}
 TRANSLATE_DIRECTIONS = {'fr-cr', 'cr-fr'}
+
+
+class TranscriptionJobStore:
+    """Stockage en mémoire des jobs de transcription asynchrones (thread-safe).
+
+    Adapté à 1 worker gunicorn (tous les appels touchent le même processus).
+    Avec plusieurs workers, il faudrait un stockage partagé (Redis, DB…).
+    """
+
+    def __init__(self, max_jobs: int = 50, max_age_s: int = 3600):
+        self._jobs = {}
+        self._lock = threading.Lock()
+        self.max_jobs = max_jobs
+        self.max_age_s = max_age_s
+
+    def create(self) -> str:
+        job_id = uuid.uuid4().hex
+        with self._lock:
+            self._prune_locked()
+            self._jobs[job_id] = {
+                "status": "pending", "progress": 0,
+                "result": None, "error": None, "created": time.time(),
+            }
+        return job_id
+
+    def update(self, job_id: str, **fields) -> None:
+        with self._lock:
+            if job_id in self._jobs:
+                self._jobs[job_id].update(fields)
+
+    def get(self, job_id: str):
+        with self._lock:
+            job = self._jobs.get(job_id)
+            return dict(job) if job else None
+
+    def _prune_locked(self) -> None:
+        now = time.time()
+        stale = [k for k, v in self._jobs.items() if now - v["created"] > self.max_age_s]
+        for k in stale:
+            self._jobs.pop(k, None)
+        if len(self._jobs) >= self.max_jobs:
+            oldest = sorted(self._jobs.items(), key=lambda kv: kv[1]["created"])
+            for k, _ in oldest[:len(self._jobs) - self.max_jobs + 1]:
+                self._jobs.pop(k, None)
+
+
+transcription_jobs = TranscriptionJobStore()
 
 def allowed_file(filename: str) -> bool:
     """Vérifie si le type de fichier est autorisé"""
@@ -269,6 +318,125 @@ def transcribe_audio():
             "success": False,
             "error": "Erreur de traitement"
         }), 500
+
+def _extract_transcribe_params():
+    """Lit et valide les paramètres du formulaire de transcription (ValueError si invalide)."""
+    language = request.form.get('language', 'fr')
+    if language not in SUPPORTED_LANGUAGES:
+        language = 'fr'
+    model_size = request.form.get('model', 'small')
+    if model_size not in WHISPER_MODELS:
+        model_size = 'small'
+    output_format = request.form.get('format', 'text')
+    if output_format not in OUTPUT_FORMATS:
+        raise ValueError("Format de sortie non supporté")
+    return {
+        'language': language,
+        'model_size': model_size,
+        'output_format': output_format,
+        'enable_speakers': request.form.get('speakers', 'false').lower() == 'true',
+        'enhance_audio': request.form.get('enhance', 'false').lower() == 'true',
+        'noise_reduction': parse_float(request.form.get('noise_reduction'), 0.5, 0.0, 1.0),
+        'amplification': parse_float(request.form.get('amplification'), 0, -30.0, 30.0),
+        'normalize_audio': request.form.get('normalize', 'true').lower() == 'true',
+    }
+
+def _run_transcription_job(job_id, temp_input, params):
+    """Exécuté dans un thread d'arrière-plan : amélioration + transcription.
+
+    Tourne HORS du thread de requête, donc n'est pas soumis au timeout gunicorn
+    et n'immobilise pas la connexion navigateur (le front interroge l'état).
+    """
+    processed_audio_path = temp_input
+    try:
+        transcription_jobs.update(job_id, status="processing", progress=1)
+
+        if params['enhance_audio']:
+            processed_audio_path = audio_processor.enhance_audio_file(
+                temp_input, params['noise_reduction'],
+                params['amplification'], params['normalize_audio']
+            )
+
+        def on_progress(done_s, total_s):
+            if total_s:
+                pct = int(min(99, max(1, done_s / total_s * 100)))
+                transcription_jobs.update(job_id, progress=pct)
+
+        result = transcription_engine.transcribe(
+            processed_audio_path,
+            language=params['language'],
+            model_size=params['model_size'],
+            enable_speakers=params['enable_speakers'],
+            progress_callback=on_progress,
+        )
+
+        if params['output_format'] != 'text' and result.get('success'):
+            result['formatted_output'] = format_converter.convert(
+                result['text'], result.get('segments', []), params['output_format']
+            )
+        result['filename'] = params['filename']
+        transcription_jobs.update(job_id, status="done", progress=100, result=result)
+        logger.info(f"Job {job_id} terminé: {len(result.get('text', ''))} caractères")
+
+    except Exception:
+        logger.exception(f"Job {job_id} échoué")
+        transcription_jobs.update(job_id, status="error", error="Erreur de traitement")
+    finally:
+        cleanup = [temp_input]
+        if params['enhance_audio'] and processed_audio_path != temp_input:
+            cleanup.append(processed_audio_path)
+        _cleanup(*cleanup)
+
+@app.route('/api/transcribe_async', methods=['POST'])
+def transcribe_async():
+    """Lance une transcription en arrière-plan ; renvoie un job_id à interroger."""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({"error": "Aucun fichier audio fourni"}), 400
+        file = request.files['audio']
+        if not file.filename:
+            return jsonify({"error": "Nom de fichier vide"}), 400
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Type de fichier non supporté"}), 400
+
+        try:
+            params = _extract_transcribe_params()
+        except ValueError as ve:
+            return jsonify({"error": str(ve)}), 400
+        params['filename'] = secure_filename(file.filename)
+
+        temp_input = safe_temp_path('input', file.filename)
+        file.save(temp_input)
+
+        job_id = transcription_jobs.create()
+        threading.Thread(
+            target=_run_transcription_job,
+            args=(job_id, temp_input, params),
+            daemon=True,
+        ).start()
+
+        logger.info(f"Job {job_id} lancé: {params['filename']} (modèle {params['model_size']})")
+        return jsonify({"success": True, "job_id": job_id, "status": "pending"}), 202
+
+    except RequestEntityTooLarge:
+        limit_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+        return jsonify({"error": f"Fichier trop volumineux (max {limit_mb}MB)"}), 413
+    except Exception:
+        logger.exception("Erreur au lancement de la transcription")
+        return jsonify({"error": "Erreur de traitement"}), 500
+
+@app.route('/api/transcribe_status/<job_id>', methods=['GET'])
+def transcribe_status(job_id):
+    """État d'un job : pending / processing (+progress) / done (+result) / error."""
+    job = transcription_jobs.get(job_id)
+    if not job:
+        return jsonify({"error": "Job introuvable ou expiré"}), 404
+    response = {"success": True, "status": job["status"], "progress": job["progress"]}
+    if job["status"] == "done":
+        response["result"] = job["result"]
+    elif job["status"] == "error":
+        response["error"] = job["error"] or "Erreur de transcription"
+    return jsonify(response)
 
 def _send_temp_file(path: str, download_name: str):
     """Lit un fichier temporaire en mémoire et le renvoie, pour pouvoir le supprimer

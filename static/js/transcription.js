@@ -8,7 +8,7 @@ const exportHistory = [];
 
 /* ============================ TRANSCRIPTION ============================ */
 
-let _progressTimer = null;
+let _pollTimer = null;
 
 function startTranscription() {
     if (!currentFile) {
@@ -18,7 +18,6 @@ function startTranscription() {
     }
 
     const btn = document.getElementById('transcribeBtn');
-    const progressContainer = document.getElementById('progressContainer');
     const transcriptArea = document.getElementById('transcriptArea');
 
     // Paramètres
@@ -41,11 +40,12 @@ function startTranscription() {
     if (norm) formData.append('normalize', parseFloat(norm.value) > 0 ? 'true' : 'false');
 
     // UI : démarrage
-    btn.disabled = true;
+    if (btn) btn.disabled = true;
     if (transcriptArea) transcriptArea.style.display = 'none';
-    startProgress();
+    showProgress(0, 'Envoi du fichier…');
 
-    fetch(apiUrl('/api/transcribe'), { method: 'POST', body: formData })
+    // Transcription asynchrone : on lance un job puis on interroge son état.
+    fetch(apiUrl('/api/transcribe_async'), { method: 'POST', body: formData })
         .then(async (response) => {
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.success === false) {
@@ -53,55 +53,75 @@ function startTranscription() {
             }
             return data;
         })
-        .then((result) => {
-            completeProgress();
-            currentTranscription = result;
-            renderTranscription(result);
-            showToast('✅ Transcription terminée !', 'success');
-        })
+        .then((data) => pollJob(data.job_id))
         .catch((error) => {
             console.error('Erreur transcription:', error);
             showToast('❌ ' + error.message, 'error');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            stopProgress();
-            setTimeout(() => {
-                if (progressContainer) progressContainer.style.display = 'none';
-            }, 600);
+            endProgress();
         });
 }
 
-function startProgress() {
+function pollJob(jobId) {
+    let failures = 0;
+    const tick = () => {
+        fetch(apiUrl('/api/transcribe_status/' + jobId))
+            .then(async (response) => {
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.error || `Erreur serveur (${response.status})`);
+                }
+                return data;
+            })
+            .then((data) => {
+                failures = 0;
+                if (data.status === 'pending') {
+                    showProgress(data.progress || 0, 'En file d\'attente…');
+                    _pollTimer = setTimeout(tick, 2000);
+                } else if (data.status === 'processing') {
+                    showProgress(data.progress || 0, 'Transcription en cours…');
+                    _pollTimer = setTimeout(tick, 2000);
+                } else if (data.status === 'done') {
+                    showProgress(100, 'Terminé');
+                    currentTranscription = data.result;
+                    renderTranscription(data.result);
+                    showToast('✅ Transcription terminée !', 'success');
+                    endProgress();
+                } else {
+                    throw new Error(data.error || 'Échec de la transcription');
+                }
+            })
+            .catch((error) => {
+                // Tolère quelques échecs réseau passagers avant d'abandonner
+                failures += 1;
+                if (failures <= 3) {
+                    _pollTimer = setTimeout(tick, 3000);
+                } else {
+                    console.error('Erreur suivi transcription:', error);
+                    showToast('❌ ' + error.message, 'error');
+                    endProgress();
+                }
+            });
+    };
+    tick();
+}
+
+function showProgress(pct, text) {
     const container = document.getElementById('progressContainer');
     const fill = document.getElementById('progressFill');
     const percent = document.getElementById('progressPercent');
-    const text = document.getElementById('progressText');
-    if (!container) return;
-
-    container.style.display = 'block';
-    let value = 0;
-    if (text) text.textContent = 'Traitement de l\'audio…';
-    _progressTimer = setInterval(() => {
-        // Progression asymptotique jusqu'à 90 % en attendant la réponse
-        value += Math.max(0.5, (90 - value) * 0.08);
-        if (value > 90) value = 90;
-        if (fill) fill.style.width = value + '%';
-        if (percent) percent.textContent = Math.round(value) + '%';
-    }, 400);
+    const label = document.getElementById('progressText');
+    if (container) container.style.display = 'block';
+    if (fill) fill.style.width = (pct || 0) + '%';
+    if (percent) percent.textContent = Math.round(pct || 0) + '%';
+    if (label && text) label.textContent = text;
 }
 
-function completeProgress() {
-    const fill = document.getElementById('progressFill');
-    const percent = document.getElementById('progressPercent');
-    const text = document.getElementById('progressText');
-    if (fill) fill.style.width = '100%';
-    if (percent) percent.textContent = '100%';
-    if (text) text.textContent = 'Terminé';
-}
-
-function stopProgress() {
-    if (_progressTimer) { clearInterval(_progressTimer); _progressTimer = null; }
+function endProgress() {
+    if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
+    const btn = document.getElementById('transcribeBtn');
+    const container = document.getElementById('progressContainer');
+    if (btn) btn.disabled = false;
+    setTimeout(() => { if (container) container.style.display = 'none'; }, 900);
 }
 
 function renderTranscription(result) {

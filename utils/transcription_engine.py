@@ -171,38 +171,41 @@ class TranscriptionEngine:
             logger.error(f"❌ Erreur lors du chargement du modèle {model_size}: {e}")
             raise
     
-    def transcribe(self, audio_path: str, 
+    def transcribe(self, audio_path: str,
                   language: str = "fr",
                   model_size: str = "small",
                   enable_speakers: bool = False,
-                  enable_timestamps: bool = True) -> Dict[str, Any]:
+                  enable_timestamps: bool = True,
+                  progress_callback=None) -> Dict[str, Any]:
         """
         Transcrit un fichier audio
-        
+
         Args:
             audio_path: Chemin vers le fichier audio
             language: Code de langue (fr, en, etc.)
             model_size: Taille du modèle Whisper
             enable_speakers: Activer la détection de locuteurs
             enable_timestamps: Inclure les timestamps
-            
+            progress_callback: fonction optionnelle appelée pendant la transcription
+                avec (secondes_traitées, durée_totale) pour suivre l'avancement.
+
         Returns:
             Dictionnaire avec le résultat de la transcription
         """
         start_time = time.time()
-        
+
         try:
             logger.info(f"🎯 Début transcription: {Path(audio_path).name}")
             logger.info(f"📋 Paramètres: langue={language}, modèle={model_size}, locuteurs={enable_speakers}")
-            
+
             # Charger le modèle si nécessaire
             if model_size != self.current_model_size:
                 self.load_model(model_size)
-            
+
             # Choisir le meilleur moteur disponible
             if "faster_whisper" in self.available_engines:
                 result = self._transcribe_faster_whisper(
-                    audio_path, language, enable_speakers, enable_timestamps
+                    audio_path, language, enable_speakers, enable_timestamps, progress_callback
                 )
             elif "whisper" in self.available_engines:
                 result = self._transcribe_whisper(
@@ -234,8 +237,9 @@ class TranscriptionEngine:
                 "processing_time": time.time() - start_time
             }
     
-    def _transcribe_faster_whisper(self, audio_path: str, language: str, 
-                                  enable_speakers: bool, enable_timestamps: bool) -> Dict[str, Any]:
+    def _transcribe_faster_whisper(self, audio_path: str, language: str,
+                                  enable_speakers: bool, enable_timestamps: bool,
+                                  progress_callback=None) -> Dict[str, Any]:
         """Transcription avec Faster Whisper (méthode prioritaire)"""
         try:
             model = self.models.get("faster_whisper")
@@ -295,6 +299,14 @@ class TranscriptionEngine:
                 
                 transcript_segments.append(segment_dict)
                 full_text.append(segment.text)
+
+                # Suivi de l'avancement (faster-whisper est un générateur : on
+                # est notifié au fur et à mesure que les segments sont produits)
+                if progress_callback and getattr(info, 'duration', 0):
+                    try:
+                        progress_callback(segment.end, info.duration)
+                    except Exception:
+                        pass
             
             # Post-traitement du texte
             final_text = self._post_process_text(" ".join(full_text).strip(), language)
