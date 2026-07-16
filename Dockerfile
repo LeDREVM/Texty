@@ -4,10 +4,12 @@
 # Whisper nécessite ffmpeg + libsndfile (impossible en runtime natif).
 FROM python:3.11-slim
 
-# Dépendances système : ffmpeg (pydub/whisper), libsndfile (soundfile)
+# Dépendances système : ffmpeg (pydub/whisper), libsndfile (soundfile),
+# git (Hugging Face Spaces injecte un `git config` pendant le build).
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ffmpeg \
         libsndfile1 \
+        git \
     && rm -rf /var/lib/apt/lists/*
 
 # Utilisateur non-root (UID 1000) requis par Hugging Face Spaces
