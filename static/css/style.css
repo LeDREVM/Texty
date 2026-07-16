@@ -40,12 +40,15 @@
 
 * { box-sizing: border-box; }
 
+html { overflow-x: hidden; }
+
 body {
     margin: 0;
     font-family: var(--font);
     color: var(--text);
     background: var(--bg);
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 .container {
@@ -223,6 +226,13 @@ select:focus, input:focus, textarea:focus {
 .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 .btn:active { transform: none; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Accessibilité clavier : anneau de focus visible uniquement au clavier */
+.btn:focus-visible, .tab:focus-visible, .chip:focus-visible,
+.modal-close:focus-visible, .toast-close:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+}
 .btn-primary { background: var(--teal); color: #fff; border-color: var(--teal); }
 .btn-primary:hover { background: var(--teal-dark); }
 .btn-secondary { background: var(--surface-2); color: var(--text); }
@@ -510,10 +520,37 @@ select:focus, input:focus, textarea:focus {
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
     .container { padding: 12px; }
+    .header { padding: 22px 14px; }
     .header h1 { font-size: 1.5rem; }
-    .tab { min-width: calc(50% - 8px); }
+
+    /* Onglets : bande défilable horizontalement plutôt qu'empilée sur 3 rangées */
+    .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: 0 0 auto; min-width: auto; }
+
     .tab-content { padding: 18px; }
     .audio-controls { flex-direction: column; align-items: stretch; }
     .toast-container { left: 12px; right: 12px; max-width: none; }
     .share-options { grid-template-columns: 1fr; }
+    .eq-controls { gap: 16px; }
+    .slider.vertical { height: 96px; }
+    .action-buttons .btn, .enhancement-actions .btn { flex: 1 1 auto; }
+}
+
+/* Respect des préférences de mouvement réduit (accessibilité / confort) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+    .btn:hover { transform: none; }
+    .feature-card:hover, .format-option:hover { transform: none; }
 }

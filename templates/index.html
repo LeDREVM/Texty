@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎙️ Transcripteur Audio Pro - Négus Dja</title>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <!-- Favicon inline (évite une requête/404) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8E%99%EF%B8%8F</text></svg>">
     
     <!-- Styles -->
     <link rel="stylesheet" href="/static/css/style.css">
@@ -275,12 +275,12 @@
                     <!-- Contrôles de lecture -->
                     <div class="audio-controls">
                         <div class="control-group">
-                            <button class="btn btn-icon btn-primary" id="playPauseBtn" onclick="togglePlayPause()">
+                            <button class="btn btn-icon btn-primary" id="playPauseBtn" onclick="togglePlayPause()" aria-label="Lecture ou pause">
                                 ▶️
                             </button>
-                            <button class="btn btn-icon btn-secondary" onclick="stopAudio()">⏹️</button>
-                            <button class="btn btn-icon btn-secondary" onclick="rewind()">⏪</button>
-                            <button class="btn btn-icon btn-secondary" onclick="fastForward()">⏩️</button>
+                            <button class="btn btn-icon btn-secondary" onclick="stopAudio()" aria-label="Arrêter">⏹️</button>
+                            <button class="btn btn-icon btn-secondary" onclick="rewind()" aria-label="Reculer de 10 secondes">⏪</button>
+                            <button class="btn btn-icon btn-secondary" onclick="fastForward()" aria-label="Avancer de 10 secondes">⏩️</button>
                         </div>
                         
                         <div class="time-info">
@@ -288,9 +288,9 @@
                         </div>
                         
                         <div class="control-group">
-                            <button class="btn btn-icon btn-secondary" onclick="decreaseSpeed()">🐌</button>
+                            <button class="btn btn-icon btn-secondary" onclick="decreaseSpeed()" aria-label="Ralentir la lecture">🐌</button>
                             <span id="speedDisplay">1.0x</span>
-                            <button class="btn btn-icon btn-secondary" onclick="increaseSpeed()">🚀</button>
+                            <button class="btn btn-icon btn-secondary" onclick="increaseSpeed()" aria-label="Accélérer la lecture">🚀</button>
                         </div>
                     </div>
 
@@ -660,7 +660,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>🔍 Rechercher et remplacer</h3>
-                <button class="modal-close" onclick="closeFindReplace()">&times;</button>
+                <button class="modal-close" onclick="closeFindReplace()" aria-label="Fermer">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -684,7 +684,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>🔗 Partager la transcription</h3>
-                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+                <button class="modal-close" onclick="closeShareModal()" aria-label="Fermer">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="share-options">
@@ -714,10 +714,10 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
-    <script src="/static/js/app.js"></script>
-    <script src="/static/js/audio-processor.js"></script>
-    <script src="/static/js/transcription.js"></script>
-    <script src="/static/js/dictionary.js"></script>
+    <script defer src="/static/js/app.js"></script>
+    <script defer src="/static/js/audio-processor.js"></script>
+    <script defer src="/static/js/transcription.js"></script>
+    <script defer src="/static/js/dictionary.js"></script>
     
     <!-- Script d'initialisation -->
     <script>

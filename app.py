@@ -14,13 +14,12 @@ from io import BytesIO
 from pathlib import Path
 from datetime import datetime
 
-# Chemins de base, indépendants du répertoire de travail courant (CWD)
-BASE_DIR = Path(__file__).resolve().parent      # .../ranscripteur-audio-pro
-REPO_ROOT = BASE_DIR.parent                      # racine du dépôt
+# Racine du projet, indépendante du répertoire de travail courant (CWD)
+BASE_DIR = Path(__file__).resolve().parent      # racine du dépôt
 
-# Rendre le package 'utils' (situé à la racine du dépôt) importable quel que soit le CWD
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+# Rendre le package 'utils' importable quel que soit le CWD
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 # Framework web
 from flask import Flask, request, jsonify, send_file, render_template
@@ -55,11 +54,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialisation Flask : templates dans ./templates, fichiers statiques à la racine du dépôt
+# Initialisation Flask : templates et fichiers statiques à la racine du projet
 app = Flask(
     __name__,
     template_folder=str(BASE_DIR / 'templates'),
-    static_folder=str(REPO_ROOT / 'static'),
+    static_folder=str(BASE_DIR / 'static'),
 )
 
 # CORS restreint : par défaut même origine / localhost, surchargeable via CORS_ORIGINS
@@ -68,6 +67,8 @@ CORS(app, origins=[o.strip() for o in _cors_origins.split(',') if o.strip()])
 
 # Configuration
 app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_FILE_SIZE', str(100 * 1024 * 1024)))
+# Cache navigateur des fichiers statiques (secondes) — accélère les visites répétées
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = int(os.getenv('STATIC_MAX_AGE', '3600'))
 app.config['UPLOAD_FOLDER'] = str(UPLOAD_FOLDER)
 app.config['TEMP_FOLDER'] = str(TEMP_FOLDER)
 app.config['MODELS_FOLDER'] = str(MODELS_FOLDER)

@@ -254,6 +254,12 @@ function showTab(tabName) {
                 updateExportPreview();
             }
             break;
+        case 'dictionnaire':
+            // Chargement paresseux : on ne récupère le lexique qu'à la 1re ouverture
+            if (typeof ensureDictionaryLoaded === 'function') {
+                ensureDictionaryLoaded();
+            }
+            break;
     }
 }
 
@@ -737,6 +743,7 @@ function showToast(message, type = 'info', duration = CONFIG.toastDuration) {
     const closeBtn = document.createElement('button');
     closeBtn.className = 'toast-close';
     closeBtn.innerHTML = '&times;';
+    closeBtn.setAttribute('aria-label', 'Fermer la notification');
     closeBtn.addEventListener('click', () => toast.remove());
 
     toast.append(iconSpan, messageSpan, closeBtn);
