@@ -1,7 +1,8 @@
 # Variables d'environnement à définir (déploiement)
 
-Récapitulatif copier-coller. Remplace `<TON_USER_HF>` par ton nom d'utilisateur
-Hugging Face (l'URL du Space est `https://<TON_USER_HF>-texty.hf.space`).
+Valeurs concrètes pour ce projet — Space HF : **`Hiiwok/texty`**,
+front Netlify : **`https://textymyel.netlify.app`**.
+URL API du backend (sous-domaine en minuscules) : **`https://hiiwok-texty.hf.space`**.
 
 ---
 
@@ -9,15 +10,12 @@ Hugging Face (l'URL du Space est `https://<TON_USER_HF>-texty.hf.space`).
 
 **Site settings ▸ Environment variables ▸ Add a variable**
 
-| Clé            | Valeur                                        |
-| -------------- | --------------------------------------------- |
-| `API_BASE_URL` | `https://<TON_USER_HF>-texty.hf.space`        |
+| Clé            | Valeur                              |
+| -------------- | ----------------------------------- |
+| `API_BASE_URL` | `https://hiiwok-texty.hf.space`     |
 
-> C'est l'URL de ton **backend** (HF Space ou Render). Après l'avoir définie :
-> **Deploys ▸ Trigger deploy ▸ Clear cache and deploy site** pour que le build
-> l'injecte dans `static/js/config.js`.
->
-> Exemple : si ton user HF est `myel`, mets `https://myel-texty.hf.space`.
+> Après l'avoir définie : **Deploys ▸ Trigger deploy ▸ Clear cache and deploy site**
+> pour que le build l'injecte dans `static/js/config.js`.
 
 ---
 
@@ -46,11 +44,27 @@ Hugging Face (l'URL du Space est `https://<TON_USER_HF>-texty.hf.space`).
 
 ---
 
+## 4. GitHub Actions — déploiement auto du backend vers HF (optionnel)
+
+Le workflow `.github/workflows/deploy-hf.yml` pousse le backend vers le Space à
+chaque push. **Repo ▸ Settings ▸ Secrets and variables ▸ Actions** :
+
+| Type       | Nom           | Valeur                              |
+| ---------- | ------------- | ----------------------------------- |
+| **Secret** | `HF_TOKEN`    | *(ton NOUVEAU token HF, rôle Write)* |
+| Variable   | `HF_USERNAME` | `Hiiwok`                            |
+| Variable   | `HF_SPACE`    | `texty`                             |
+
+> 🔒 Le token va **uniquement** dans le *Secret* `HF_TOKEN` (chiffré par GitHub).
+> Jamais dans un fichier, un commit, ou la conversation.
+
+---
+
 ## Schéma — les deux URLs se pointent mutuellement
 
 ```
-Netlify (front)                          Backend (HF Space ou Render)
-  API_BASE_URL ───────────────────────▶  https://<TON_USER_HF>-texty.hf.space
+Netlify (front)                          Backend HF Space (Hiiwok/texty)
+  API_BASE_URL ───────────────────────▶  https://hiiwok-texty.hf.space
   https://textymyel.netlify.app  ◀─────  CORS_ORIGINS
 ```
 
