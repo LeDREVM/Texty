@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Hugging Face CLI
+      - name: Install Hugging Face CLI (hf)
         run: pip install -U "huggingface_hub[cli]"
 
       - name: Assemble Space files
@@ -37,15 +37,11 @@ jobs:
           cp -r utils templates static data _hf/
           cp huggingface/README.md _hf/README.md
 
-      - name: Create Space if missing
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: huggingface-cli repo create "${{ vars.HF_SPACE }}" --type space --space_sdk docker -y || true
-
+      # Le Space doit exister au préalable (créé sur huggingface.co/new-space, SDK Docker).
       - name: Upload to Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          huggingface-cli upload "${{ vars.HF_USERNAME }}/${{ vars.HF_SPACE }}" _hf . \
+          hf upload "${{ vars.HF_USERNAME }}/${{ vars.HF_SPACE }}" _hf . \
             --repo-type=space \
             --commit-message "Deploy from GitHub ${GITHUB_SHA::7}"
