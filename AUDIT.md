@@ -79,8 +79,9 @@ follow-up because completing it is net-new feature work, not a defect fix.
 - **[FIXED] D3 — Medium**: template/static layout resolved via explicit `template_folder` /
   `static_folder` and path anchoring; the app now works regardless of the current directory
   (`utils/` is put on `sys.path` from the app).
-- **[REPORTED] D4 — Low**: top-level dir is misspelled `ranscripteur-audio-pro` (missing "T").
-  Left unchanged to avoid churning `wsgi`/run paths and docs; rename is a safe optional cleanup.
+- **[FIXED] D4 — Low**: the misspelled `ranscripteur-audio-pro/` subdirectory is removed; `app.py`,
+  `wsgi.py` and `templates/` now live at the repo **root** (conventional Flask layout, alongside
+  `static/`, `utils/`, `data/`). Path handling in `app.py` and the README were updated accordingly.
 - **[FIXED] D5 — Low**: removed stray empty files `utils/dd`,
   `utils/Transcripteur Audio Web.html`, `ranscripteur-audio-pro/README.md`.
 - **[FIXED] D6 — Low**: README `.env` sample now uses `FLASK_DEBUG`/`MAX_FILE_SIZE`/`CORS_ORIGINS`

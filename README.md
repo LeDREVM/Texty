@@ -11,13 +11,13 @@ Ressources utiles
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cd ranscripteur-audio-pro
 export FLASK_APP=app.py
 export FLASK_DEBUG=true   # développement local uniquement — ne jamais activer en production
 flask run
 ```
 
-Le projet inclut un panneau web dans `ranscripteur-audio-pro/Templates/index.html` et des utilitaires dans `utils/`.
+Le projet inclut un panneau web dans `templates/index.html` et des utilitaires dans `utils/`.
+`app.py` (et `wsgi.py` pour la production) se trouvent à la **racine** du dépôt.
 
 Pour pousser vers GitHub, configurez votre remote et authentification (SSH/HTTPS avec PAT).
 # 🎙️ Transcripteur Audio Pro

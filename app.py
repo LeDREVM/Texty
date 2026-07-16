@@ -14,13 +14,12 @@ from io import BytesIO
 from pathlib import Path
 from datetime import datetime
 
-# Chemins de base, indépendants du répertoire de travail courant (CWD)
-BASE_DIR = Path(__file__).resolve().parent      # .../ranscripteur-audio-pro
-REPO_ROOT = BASE_DIR.parent                      # racine du dépôt
+# Racine du projet, indépendante du répertoire de travail courant (CWD)
+BASE_DIR = Path(__file__).resolve().parent      # racine du dépôt
 
-# Rendre le package 'utils' (situé à la racine du dépôt) importable quel que soit le CWD
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+# Rendre le package 'utils' importable quel que soit le CWD
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 # Framework web
 from flask import Flask, request, jsonify, send_file, render_template
@@ -55,11 +54,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialisation Flask : templates dans ./templates, fichiers statiques à la racine du dépôt
+# Initialisation Flask : templates et fichiers statiques à la racine du projet
 app = Flask(
     __name__,
     template_folder=str(BASE_DIR / 'templates'),
-    static_folder=str(REPO_ROOT / 'static'),
+    static_folder=str(BASE_DIR / 'static'),
 )
 
 # CORS restreint : par défaut même origine / localhost, surchargeable via CORS_ORIGINS
