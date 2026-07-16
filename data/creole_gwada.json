@@ -3,8 +3,13 @@
     "name": "Lexique français – créole guadeloupéen (kréyòl gwadloupéyen)",
     "language_pair": "fr <-> gcf",
     "orthographe": "Graphie standard de type GEREC",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "avertissement": "Lexique de DÉPART, non exhaustif. Le créole guadeloupéen connaît des variantes orthographiques et régionales. À faire valider et enrichir par des locuteurs natifs avant tout usage de référence.",
+    "sources_a_integrer": [
+      "https://www.evaneos.fr/guadeloupe/voyage/vocabulaire-de-survie/",
+      "https://www.dictionnaires.com/creole/"
+    ],
+    "note_sources": "Ces sources n'ont pas pu être récupérées automatiquement (blocage réseau) ; les entrées proviennent de connaissances générales et restent à valider.",
     "auteur_projet": "Transcripteur Audio Pro – Négus Dja"
   },
   "entries": [
@@ -108,6 +113,46 @@
     {"fr": "sept", "cr": "sèt", "category": "nombres", "notes": ""},
     {"fr": "huit", "cr": "uit", "category": "nombres", "notes": ""},
     {"fr": "neuf", "cr": "nèf", "category": "nombres", "notes": ""},
-    {"fr": "dix", "cr": "dis", "category": "nombres", "notes": ""}
+    {"fr": "dix", "cr": "dis", "category": "nombres", "notes": ""},
+
+    {"fr": "salut (familier)", "cr": "sa ka fèt", "category": "salutations", "notes": "litt. « qu'est-ce qui se fait »"},
+    {"fr": "quoi de neuf ?", "cr": "sa ka maché ?", "category": "salutations", "notes": ""},
+    {"fr": "de rien", "cr": "pa ni pwoblèm", "category": "salutations", "notes": "aussi « pa ni traka »"},
+    {"fr": "bienvenue", "cr": "byenvini", "category": "salutations", "notes": ""},
+    {"fr": "bonne nuit", "cr": "bòn nwit", "category": "salutations", "notes": ""},
+
+    {"fr": "d'accord", "cr": "dakò", "category": "expressions", "notes": ""},
+    {"fr": "attention", "cr": "atansyon", "category": "expressions", "notes": ""},
+    {"fr": "doucement", "cr": "dousman", "category": "expressions", "notes": ""},
+    {"fr": "j'ai faim", "cr": "an ni fen", "category": "expressions", "notes": "litt. « j'ai faim »"},
+    {"fr": "j'ai soif", "cr": "an swaf", "category": "expressions", "notes": ""},
+    {"fr": "bon appétit", "cr": "bon apéti", "category": "expressions", "notes": ""},
+
+    {"fr": "comment tu t'appelles ?", "cr": "ki non a-w ?", "category": "questions", "notes": ""},
+    {"fr": "je m'appelle", "cr": "an ka rélé", "category": "questions", "notes": "litt. « je suis appelé »"},
+    {"fr": "où est... ?", "cr": "ola... yé ?", "category": "questions", "notes": "aussi « koté... yé ? »"},
+    {"fr": "combien ça coûte ?", "cr": "konmyen sa ka kouté ?", "category": "questions", "notes": ""},
+    {"fr": "je ne comprends pas", "cr": "an pa konprann", "category": "questions", "notes": ""},
+    {"fr": "je ne sais pas", "cr": "an pa sav", "category": "questions", "notes": ""},
+    {"fr": "qu'est-ce que c'est ?", "cr": "ka sa yé ?", "category": "questions", "notes": ""},
+    {"fr": "tu parles français ?", "cr": "ou ka palé fwansé ?", "category": "questions", "notes": ""},
+    {"fr": "pourquoi", "cr": "poukwa", "category": "questions", "notes": ""},
+    {"fr": "comment", "cr": "kijan", "category": "questions", "notes": "aussi « ki jan »"},
+    {"fr": "où", "cr": "ola", "category": "questions", "notes": "aussi « koté »"},
+    {"fr": "quand", "cr": "kilè", "category": "questions", "notes": ""},
+    {"fr": "qui", "cr": "kimoun", "category": "questions", "notes": "aussi « ki moun »"},
+    {"fr": "combien", "cr": "konmyen", "category": "questions", "notes": "aussi « konmen »"},
+
+    {"fr": "aujourd'hui", "cr": "jòdi", "category": "temps", "notes": "aussi « jòdla »"},
+    {"fr": "demain", "cr": "dèmen", "category": "temps", "notes": ""},
+    {"fr": "hier", "cr": "yè", "category": "temps", "notes": ""},
+    {"fr": "maintenant", "cr": "aprézan", "category": "temps", "notes": "aussi « atjèlman »"},
+    {"fr": "semaine", "cr": "sèmenn", "category": "temps", "notes": ""},
+    {"fr": "année", "cr": "lanné", "category": "temps", "notes": ""},
+
+    {"fr": "marché", "cr": "maché", "category": "voyage", "notes": "homophone de « marcher »"},
+    {"fr": "plage", "cr": "laplaj", "category": "voyage", "notes": ""},
+    {"fr": "rhum", "cr": "wonm", "category": "voyage", "notes": ""},
+    {"fr": "boutique / magasin", "cr": "boutik", "category": "voyage", "notes": ""}
   ]
 }
