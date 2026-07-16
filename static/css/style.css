@@ -408,6 +408,28 @@ select:focus, input:focus, textarea:focus {
 }
 .chip:hover, .chip.active { background: var(--teal); color: #fff; border-color: var(--teal); }
 
+.translate-box {
+    margin-top: 22px; padding: 18px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+.translate-box h3 { margin: 0 0 10px; }
+.translate-box textarea { width: 100%; resize: vertical; }
+.translate-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; align-items: center; }
+.translate-output {
+    margin-top: 14px; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--teal); border-radius: var(--radius-sm);
+}
+.translate-result { font-size: 1.1rem; font-weight: 600; color: var(--teal-dark); }
+.translate-method {
+    display: inline-block; margin-top: 8px;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+.translate-unknown { margin-top: 8px; font-size: 0.85rem; color: var(--amber); }
+.translate-note { margin-top: 8px; font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+
 /* ---------- Modales ---------- */
 .modal {
     display: none;

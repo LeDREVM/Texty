@@ -147,3 +147,68 @@ function showDictWarning(text) {
     el.textContent = '⚠️ ' + text;
     el.style.display = 'block';
 }
+
+/* ============================ TRADUCTION ============================ */
+
+function translateText() {
+    const input = document.getElementById('translateInput');
+    const text = (input.value || '').trim();
+    if (!text) {
+        showToast('Saisissez un texte à traduire', 'warning');
+        return;
+    }
+    const direction = document.getElementById('translateDirection').value;
+
+    fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, direction: direction })
+    })
+        .then(async (r) => {
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || data.success === false) {
+                throw new Error(data.error || `Erreur serveur (${r.status})`);
+            }
+            return data;
+        })
+        .then((data) => renderTranslation(data))
+        .catch((err) => {
+            console.error('Erreur traduction:', err);
+            showToast('❌ ' + err.message, 'error');
+        });
+}
+
+function renderTranslation(data) {
+    const out = document.getElementById('translateOutput');
+    if (!out) return;
+    out.innerHTML = '';
+    out.style.display = 'block';
+
+    const result = document.createElement('div');
+    result.className = 'translate-result';
+    result.textContent = data.translation || '(vide)';
+    out.appendChild(result);
+
+    // Badge de méthode
+    const badge = document.createElement('span');
+    badge.className = 'translate-method';
+    badge.textContent = data.method === 'model'
+        ? '🧠 modèle NLLB' : '📖 dictionnaire (mot à mot, approximatif)';
+    out.appendChild(badge);
+
+    // Mots non traduits
+    if (Array.isArray(data.unknown) && data.unknown.length) {
+        const unknown = document.createElement('div');
+        unknown.className = 'translate-unknown';
+        unknown.textContent = 'Mots non trouvés : ' + data.unknown.join(', ');
+        out.appendChild(unknown);
+    }
+
+    // Note éventuelle (repli dictionnaire)
+    if (data.note) {
+        const note = document.createElement('div');
+        note.className = 'translate-note';
+        note.textContent = 'ℹ️ ' + data.note;
+        out.appendChild(note);
+    }
+}
