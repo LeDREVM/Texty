@@ -46,6 +46,10 @@ logger = logging.getLogger(__name__)
 # Répertoire de téléchargement des modèles (configurable, cf. README / .env)
 MODEL_DIR = os.getenv('WHISPER_MODEL_DIR', './models')
 
+# Modèle créole affiné (faster-whisper / CTranslate2) : si défini, ce dossier local
+# est chargé À LA PLACE du modèle standard. Voir training/ (fine-tuning + conversion).
+CREOLE_MODEL_PATH = os.getenv('CREOLE_MODEL_PATH')
+
 class TranscriptionEngine:
     """Moteur de transcription avec support multiple d'engines"""
     
@@ -137,15 +141,20 @@ class TranscriptionEngine:
         
         try:
             if FASTER_WHISPER_AVAILABLE:
-                logger.info(f"🔄 Chargement du modèle Faster Whisper: {model_size}")
-                
-                # Configuration optimisée pour Hostinger (CPU)
+                # Modèle créole affiné (dossier local) prioritaire s'il est défini
+                model_source = CREOLE_MODEL_PATH or model_size
+                if CREOLE_MODEL_PATH:
+                    logger.info(f"🔄 Chargement du modèle créole affiné: {CREOLE_MODEL_PATH}")
+                else:
+                    logger.info(f"🔄 Chargement du modèle Faster Whisper: {model_size}")
+
+                # Configuration optimisée pour CPU
                 device = "cpu"
                 compute_type = "int8"  # Plus léger en mémoire
-                
-                # Créer le modèle
+
+                # Créer le modèle (un chemin local ignore download_root)
                 model = WhisperModel(
-                    model_size,
+                    model_source,
                     device=device,
                     compute_type=compute_type,
                     download_root=MODEL_DIR

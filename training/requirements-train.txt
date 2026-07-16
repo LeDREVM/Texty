@@ -1,4 +1,4 @@
-# Dépendances pour l'ENTRAÎNEMENT du modèle de traduction (GPU requis).
+# Dépendances pour l'ENTRAÎNEMENT (traduction ET reconnaissance vocale), GPU requis.
 # À installer sur Colab/Kaggle/serveur GPU, PAS dans l'environnement web du projet.
 transformers>=4.40
 datasets>=2.18
@@ -6,3 +6,10 @@ sentencepiece>=0.1.99
 sacrebleu>=2.4
 torch>=2.1
 accelerate>=0.28
+
+# ASR (fine-tuning Whisper créole) + évaluation WER + conversion faster-whisper
+evaluate>=0.4
+jiwer>=3.0
+librosa>=0.10
+soundfile>=0.12
+ctranslate2>=4.0        # fournit ct2-transformers-converter (export faster-whisper)
