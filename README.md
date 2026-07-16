@@ -162,6 +162,33 @@ Le front bascule automatiquement vers `API_BASE_URL` pour **tous** les appels
 (`/api/transcribe`, `/api/enhance`, `/api/dictionary`, `/api/translate`, …) via
 l'aide `apiUrl()` de `static/js/config.js`.
 
+### Backend sur Render (Docker)
+
+Le dépôt fournit un `Dockerfile` (ffmpeg + libsndfile + gunicorn) et un
+`render.yaml` (service nommé **`texty`**).
+
+1. Sur [Render](https://render.com) : **New > Blueprint**, connecte ce dépôt.
+   Render lit `render.yaml` et crée le service `texty` (runtime Docker).
+   - Alternative manuelle : **New > Web Service** → runtime **Docker** → nom `texty`.
+2. Le service démarre sur `https://texty.onrender.com` (ou un nom voisin si `texty`
+   est déjà pris). C'est cette URL qui devient ton `API_BASE_URL` côté Netlify.
+3. Variables d'environnement (déjà dans `render.yaml`, à ajuster au besoin) :
+   - `CORS_ORIGINS = https://textymyel.netlify.app` (ton front)
+   - `WHISPER_MODEL_DIR = /app/models`, `FLASK_DEBUG = False`
+
+> ⚠️ **Mémoire** : Whisper est gourmand. Le plan `free`/`starter` (512 Mo) ne suffit
+> pas ; utilise au moins `standard` (2 Go) et privilégie les modèles `tiny`/`base`/`small`.
+> Le premier appel télécharge le modèle (quelques minutes).
+
+### Boucle de configuration front ⇄ back
+
+```
+Netlify (front)                          Render (back)
+  API_BASE_URL = https://texty.onrender.com   CORS_ORIGINS = https://textymyel.netlify.app
+```
+Après le déploiement Render, mets `API_BASE_URL` sur Netlify = l'URL Render, puis
+redéploie le front. Les deux doivent se pointer mutuellement.
+
 L'application sera accessible sur `http://localhost:5000`
 
 ### Interface web

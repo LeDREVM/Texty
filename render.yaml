@@ -1,0 +1,23 @@
+# Blueprint Render — backend Transcripteur Audio Pro.
+# Sur Render : New > Blueprint > connecte ce dépôt. Le service s'appellera "texty".
+services:
+  - type: web
+    name: texty
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Whisper a besoin de RAM : le plan "free"/"starter" (512 Mo) est insuffisant.
+    # "standard" = 2 Go (ok pour les modèles tiny/base/small). Monte en gamme si OOM.
+    plan: standard
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: WHISPER_MODEL_DIR
+        value: /app/models
+      # URL du front Netlify autorisée par le CORS
+      - key: CORS_ORIGINS
+        value: https://textymyel.netlify.app
+      # Taille max d'upload en octets (100 Mo). Ajuste si besoin.
+      - key: MAX_FILE_SIZE
+        value: "104857600"
