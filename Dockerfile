@@ -41,6 +41,9 @@ EXPOSE 7860
 # --timeout 1800 : la transcription CPU d'un fichier long peut durer longtemps
 #   (sinon gunicorn tue le worker et la requête échoue en « failed to fetch »).
 # --graceful-timeout 30 : redémarrage plus propre (évite le port bloqué).
+# `exec` : gunicorn REMPLACE le shell et devient PID 1, pour recevoir SIGTERM et
+#   se fermer proprement au redémarrage (sinon l'ancien process garde le port 7860
+#   -> « Address already in use » et crash en boucle sur HF Spaces).
 # --threads 4 : sert les requêtes de suivi (/api/transcribe_status) pendant qu'un
 #   job de transcription tourne en tâche de fond dans le même worker.
-CMD ["sh", "-c", "gunicorn wsgi:application --bind 0.0.0.0:${PORT:-7860} --workers 1 --threads 4 --timeout 1800 --graceful-timeout 30"]
+CMD ["sh", "-c", "exec gunicorn wsgi:application --bind 0.0.0.0:${PORT:-7860} --workers 1 --threads 4 --timeout 1800 --graceful-timeout 30"]
