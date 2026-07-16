@@ -32,3 +32,8 @@ __pycache__/
 
 # Node
 node_modules/
+
+# Données ASR (audios locaux, pas dans git)
+creole_asr/enregistrements/*
+!creole_asr/enregistrements/.gitkeep
+creole_asr/**/*.{wav,mp3,m4a,mp4,flac,ogg}
