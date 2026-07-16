@@ -258,6 +258,15 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Historique des transcriptions (conservé dans le navigateur) -->
+                <div class="history-panel" id="transcriptionHistory" style="display: none;">
+                    <div class="history-panel-header">
+                        <h3>🕘 Historique des transcriptions</h3>
+                        <button class="btn btn-small btn-secondary" onclick="clearHistory()">Vider</button>
+                    </div>
+                    <div class="history-list" id="historyList"></div>
+                </div>
             </section>
 
             <!-- Onglet 3: Édition Audio -->
