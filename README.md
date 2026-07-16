@@ -359,6 +359,14 @@ mot approximative). Pour une vraie traduction de phrases, entraînez un modèle 
 voir **[`training/README.md`](training/README.md)** (collecte de corpus parallèle,
 fine-tuning sur GPU, évaluation chrF/BLEU, mise en service via `TRANSLATION_MODEL_DIR`).
 
+**Reconnaissance vocale du créole (ASR)** — affinez Whisper pour transcrire l'audio
+créole. Notebook Colab clé en main :
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/LeDREVM/Texty/blob/main/training/whisper_creole_colab.ipynb)
+
+Détails dans **[`training/README.md`](training/README.md)** ; le modèle affiné se branche
+via `CREOLE_MODEL_PATH`.
+
 ## 🔍 Dépannage
 
 ### Problèmes courants

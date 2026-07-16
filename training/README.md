@@ -113,11 +113,15 @@ de préférence). Une ligne = un extrait + sa transcription.
 
 ## 🚀 Le plus simple : le notebook Colab clé en main
 
-Ouvre **`training/whisper_creole_colab.ipynb`** dans Google Colab
-(Runtime ▸ GPU), mets tes audios + un `manifest.csv` (`audio_path,text`) dans un
-dossier Google Drive, puis **Exécution ▸ Tout exécuter**. Il installe tout, entraîne,
-évalue (WER), convertit au format faster-whisper et te fait télécharger le modèle.
-Les étapes manuelles ci-dessous sont l'équivalent en ligne de commande.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/LeDREVM/Texty/blob/main/training/whisper_creole_colab.ipynb)
+
+Clique le badge ci-dessus (ou ouvre **`training/whisper_creole_colab.ipynb`** dans
+Google Colab), passe en **Runtime ▸ GPU**, mets tes audios + un `manifest.csv`
+(`audio_path,text`) dans un dossier Google Drive, puis **Exécution ▸ Tout exécuter**.
+Il installe tout, entraîne, évalue (WER), convertit au format faster-whisper et te fait
+télécharger le modèle. Les étapes manuelles ci-dessous sont l'équivalent en ligne de commande.
+
+> Dépôt privé : au premier clic, Colab te demandera d'autoriser l'accès à GitHub.
 
 ## Étapes (équivalent CLI)
 
