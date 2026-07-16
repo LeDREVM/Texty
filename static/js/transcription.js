@@ -84,6 +84,7 @@ function pollJob(jobId) {
                     showProgress(100, 'Terminé');
                     currentTranscription = data.result;
                     renderTranscription(data.result);
+                    saveToHistory(data.result);
                     showToast('✅ Transcription terminée !', 'success');
                     endProgress();
                 } else {
@@ -143,6 +144,124 @@ function renderTranscription(result) {
         ? result.processing_time.toFixed(1) + 's' : '-';
     setText('processingTime', `Temps: ${t}`);
 }
+
+/* ============================ HISTORIQUE ============================ */
+// Conservé dans le navigateur (localStorage) : la liste des transcriptions faites,
+// rechargeable et ré-exportable, persistante après rechargement de la page.
+
+const HISTORY_KEY = 'texty_history';
+const HISTORY_MAX = 20;
+
+function loadHistory() {
+    try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function persistHistory(list) {
+    try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    } catch (e) {
+        // Quota dépassé : on réduit la liste et on réessaie
+        if (list.length > 1) persistHistory(list.slice(0, Math.ceil(list.length / 2)));
+    }
+}
+
+function saveToHistory(result) {
+    if (!result || !result.text) return;
+    const list = loadHistory();
+    list.unshift({
+        id: String(Date.now()) + '_' + Math.round(Math.random() * 1e6),
+        filename: result.filename || 'transcription',
+        date: new Date().toISOString(),
+        model: result.model_used || '',
+        text: result.text,
+        segments: result.segments || [],
+        formatted_output: result.formatted_output
+    });
+    if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
+    persistHistory(list);
+    renderHistory();
+}
+
+function renderHistory() {
+    const panel = document.getElementById('transcriptionHistory');
+    const listEl = document.getElementById('historyList');
+    if (!listEl) return;
+    const list = loadHistory();
+
+    if (list.length === 0) {
+        if (panel) panel.style.display = 'none';
+        listEl.innerHTML = '';
+        return;
+    }
+    if (panel) panel.style.display = 'block';
+    listEl.innerHTML = '';
+
+    list.forEach((entry) => {
+        const words = (entry.text || '').trim().split(/\s+/).filter(Boolean).length;
+        const d = new Date(entry.date);
+        const dateStr = isNaN(d.getTime()) ? '' : d.toLocaleString();
+
+        const item = document.createElement('div');
+        item.className = 'history-item';
+
+        const meta = document.createElement('div');
+        meta.className = 'history-meta';
+        const name = document.createElement('span');
+        name.className = 'history-name';
+        name.textContent = '📄 ' + entry.filename;
+        const sub = document.createElement('span');
+        sub.className = 'history-sub';
+        sub.textContent = `${dateStr} · ${words} mots` + (entry.model ? ` · ${entry.model}` : '');
+        meta.append(name, sub);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+        const openBtn = document.createElement('button');
+        openBtn.className = 'btn btn-small';
+        openBtn.textContent = 'Ouvrir';
+        openBtn.addEventListener('click', () => restoreFromHistory(entry.id));
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-small btn-secondary';
+        delBtn.textContent = '🗑️';
+        delBtn.setAttribute('aria-label', 'Supprimer de l\'historique');
+        delBtn.addEventListener('click', () => deleteFromHistory(entry.id));
+        actions.append(openBtn, delBtn);
+
+        item.append(meta, actions);
+        listEl.appendChild(item);
+    });
+}
+
+function restoreFromHistory(id) {
+    const entry = loadHistory().find((e) => e.id === id);
+    if (!entry) return;
+    currentTranscription = {
+        text: entry.text,
+        segments: entry.segments || [],
+        filename: entry.filename,
+        formatted_output: entry.formatted_output
+    };
+    renderTranscription(currentTranscription);
+    showTab('transcribe');
+    showToast('Transcription restaurée : ' + entry.filename, 'success');
+}
+
+function deleteFromHistory(id) {
+    persistHistory(loadHistory().filter((e) => e.id !== id));
+    renderHistory();
+}
+
+function clearHistory() {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+    showToast('Historique vidé', 'info');
+}
+
+document.addEventListener('DOMContentLoaded', renderHistory);
 
 /* ============================ EXPORT ============================ */
 
