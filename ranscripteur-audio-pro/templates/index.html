@@ -597,6 +597,21 @@
                     <p class="dict-empty">Saisissez un mot ou parcourez une catégorie.</p>
                 </div>
                 <div class="dict-warning" id="dictWarning" style="display: none;"></div>
+
+                <!-- Traduction de texte -->
+                <div class="translate-box">
+                    <h3>🌐 Traduire un texte</h3>
+                    <textarea id="translateInput" rows="3"
+                              placeholder="Ex. Bonjour, où est le marché ?"></textarea>
+                    <div class="translate-controls">
+                        <select id="translateDirection">
+                            <option value="fr-cr">Français → Créole</option>
+                            <option value="cr-fr">Créole → Français</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="translateText()">Traduire</button>
+                    </div>
+                    <div class="translate-output" id="translateOutput" style="display: none;"></div>
+                </div>
             </section>
         </main>
 
