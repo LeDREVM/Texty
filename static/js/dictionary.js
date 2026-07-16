@@ -4,8 +4,14 @@
  */
 
 let _dictMeta = null;
+let _dictLoaded = false;
 
-document.addEventListener('DOMContentLoaded', initDictionary);
+// Chargement paresseux : appelé par showTab('dictionnaire') à la première ouverture.
+function ensureDictionaryLoaded() {
+    if (_dictLoaded) return;
+    _dictLoaded = true;
+    initDictionary();
+}
 
 function initDictionary() {
     // Charge une fois les métadonnées + catégories (sans tout afficher)

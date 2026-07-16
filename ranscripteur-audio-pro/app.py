@@ -68,6 +68,8 @@ CORS(app, origins=[o.strip() for o in _cors_origins.split(',') if o.strip()])
 
 # Configuration
 app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_FILE_SIZE', str(100 * 1024 * 1024)))
+# Cache navigateur des fichiers statiques (secondes) — accélère les visites répétées
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = int(os.getenv('STATIC_MAX_AGE', '3600'))
 app.config['UPLOAD_FOLDER'] = str(UPLOAD_FOLDER)
 app.config['TEMP_FOLDER'] = str(TEMP_FOLDER)
 app.config['MODELS_FOLDER'] = str(MODELS_FOLDER)
