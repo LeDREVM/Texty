@@ -113,11 +113,9 @@ brew install ffmpeg
 choco install ffmpeg
 ```
 
-4. **Créer les dossiers nécessaires**
-
-```bash
-mkdir -p uploads temp models logs
-```
+4. **Dossiers de travail** — rien à faire : `uploads/`, `temp/`, `models/` et `logs/`
+   sont créés automatiquement au démarrage par `app.py` (aucune commande manuelle,
+   fonctionne sous Windows, macOS et Linux).
 
 ## 🎮 Utilisation
 
