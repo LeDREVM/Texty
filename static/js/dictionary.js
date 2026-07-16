@@ -15,7 +15,7 @@ function ensureDictionaryLoaded() {
 
 function initDictionary() {
     // Charge une fois les métadonnées + catégories (sans tout afficher)
-    fetch('/api/dictionary/all')
+    fetch(apiUrl('/api/dictionary/all'))
         .then((r) => r.json())
         .then((data) => {
             if (!data.success) return;
@@ -69,7 +69,7 @@ function dictionaryLookup() {
     const mode = document.getElementById('dictMode').value;
     const params = new URLSearchParams({ q: query, direction: direction, mode: mode });
 
-    fetch('/api/dictionary?' + params.toString())
+    fetch(apiUrl('/api/dictionary?' + params.toString()))
         .then(async (r) => {
             const data = await r.json().catch(() => ({}));
             if (!r.ok || data.success === false) {
@@ -85,14 +85,14 @@ function dictionaryLookup() {
 }
 
 function dictionaryShowAll() {
-    fetch('/api/dictionary/all')
+    fetch(apiUrl('/api/dictionary/all'))
         .then((r) => r.json())
         .then((data) => renderEntries(data.entries, 'tout le lexique'))
         .catch((err) => showToast('❌ ' + err.message, 'error'));
 }
 
 function filterByCategory(category) {
-    fetch('/api/dictionary/all?category=' + encodeURIComponent(category))
+    fetch(apiUrl('/api/dictionary/all?category=' + encodeURIComponent(category)))
         .then((r) => r.json())
         .then((data) => renderEntries(data.entries, `catégorie « ${category} »`))
         .catch((err) => showToast('❌ ' + err.message, 'error'));
@@ -165,7 +165,7 @@ function translateText() {
     }
     const direction = document.getElementById('translateDirection').value;
 
-    fetch('/api/translate', {
+    fetch(apiUrl('/api/translate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: text, direction: direction })

@@ -476,7 +476,7 @@ async function extractAudioSegment(startTime, endTime) {
     try {
         showToast('⏳ Extraction du segment en cours...', 'info');
         
-        const response = await fetch('/api/extract_segment', {
+        const response = await fetch(apiUrl('/api/extract_segment'), {
             method: 'POST',
             body: formData
         });
@@ -666,7 +666,7 @@ function setupKeyboardShortcuts() {
  */
 async function checkServerHealth() {
     try {
-        const response = await fetch('/api/health');
+        const response = await fetch(apiUrl('/api/health'));
         const data = await response.json();
         
         console.log('🟢 Serveur OK:', data);
