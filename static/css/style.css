@@ -454,6 +454,33 @@ select:focus, input:focus, textarea:focus {
 .translate-unknown { margin-top: 8px; font-size: 0.85rem; color: var(--amber); }
 .translate-note { margin-top: 8px; font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
 
+/* ---------- Séquences (playlist) ---------- */
+.seq-controls {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    padding: 14px 16px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 16px;
+}
+.seq-controls input[type="number"] { width: 70px; }
+.seq-list { display: flex; flex-direction: column; gap: 8px; }
+.seq-item {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 12px; background: var(--surface-2);
+    border: 1px solid var(--border); border-left: 3px solid var(--teal);
+    border-radius: var(--radius-sm);
+}
+.seq-num {
+    font-variant-numeric: tabular-nums; font-weight: 700; color: #fff;
+    background: var(--teal); border-radius: 6px; padding: 2px 8px; font-size: 0.85rem;
+}
+.seq-time { font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--text-muted); min-width: 110px; }
+.seq-status { font-size: 0.78rem; min-width: 92px; }
+.seq-status.seq-done { color: var(--teal-dark); }
+.seq-status.seq-error { color: var(--danger); }
+.seq-status.seq-processing { color: var(--blue); }
+.seq-text { flex: 1 1 220px; min-width: 160px; }
+.seq-actions-cell { display: flex; gap: 6px; flex: 0 0 auto; }
+.seq-global-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+
 /* ---------- Modales ---------- */
 .modal {
     display: none;
