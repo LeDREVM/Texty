@@ -189,6 +189,15 @@ Netlify (front)                          Render (back)
 Après le déploiement Render, mets `API_BASE_URL` sur Netlify = l'URL Render, puis
 redéploie le front. Les deux doivent se pointer mutuellement.
 
+### Alternative gratuite : backend sur Hugging Face Spaces
+
+Le CPU gratuit de Hugging Face Spaces (~16 Go de RAM) suffit pour Whisper
+`tiny`/`base`/`small` (sans GPU). Le **même `Dockerfile`** fonctionne (conteneur
+non-root, port 7860). Voir **[`huggingface/README.md`](huggingface/README.md)** :
+créer un Space Docker nommé `texty`, y pousser le code, définir
+`CORS_ORIGINS = https://textymyel.netlify.app`, puis mettre sur Netlify
+`API_BASE_URL = https://<ton-user>-texty.hf.space`.
+
 L'application sera accessible sur `http://localhost:5000`
 
 ### Interface web
