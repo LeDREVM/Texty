@@ -11,7 +11,7 @@
  * Pense à autoriser l'origine du front dans le CORS du backend
  * (variable CORS_ORIGINS de app.py).
  */
-window.API_BASE_URL = window.API_BASE_URL || "";
+window.API_BASE_URL = window.API_BASE_URL || "https://hiiwok-texty.hf.space";
 
 // Construit une URL d'API en préfixant la base (sans double slash).
 window.apiUrl = function (path) {
