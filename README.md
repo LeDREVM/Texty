@@ -10,10 +10,10 @@ Ressources utiles
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r Requirements.txt
+pip install -r requirements.txt
 cd ranscripteur-audio-pro
 export FLASK_APP=app.py
-export FLASK_DEBUG=true
+export FLASK_DEBUG=true   # développement local uniquement — ne jamais activer en production
 flask run
 ```
 
@@ -172,12 +172,12 @@ L'application sera accessible sur `http://localhost:5000`
 Créer un fichier `.env` :
 
 ```env
-FLASK_ENV=production
+# Production : laisser le debug désactivé (FLASK_DEBUG absent ou False)
+FLASK_DEBUG=False
 PORT=5000
-MAX_FILE_SIZE=52428800
+MAX_FILE_SIZE=104857600            # taille max en octets (100 Mo) — lu par l'app
+CORS_ORIGINS=https://votre-domaine.example   # origines autorisées (séparées par des virgules)
 WHISPER_MODEL_DIR=./models
-TEMP_DIR=./temp
-UPLOAD_DIR=./uploads
 ```
 
 ### Installation des dépendances
@@ -270,7 +270,29 @@ POST /api/convert_format
 
 # Formats supportés
 GET /api/formats
+
+# Dictionnaire français <-> créole guadeloupéen
+GET /api/dictionary?q=bonjour&direction=fr-cr        # français -> créole
+GET /api/dictionary?q=dlo&direction=cr-fr            # créole -> français
+GET /api/dictionary?q=man&mode=search                # recherche partielle
+GET /api/dictionary/all                              # lexique complet
+GET /api/dictionary/all?category=verbes              # par catégorie
+
+# Traduction fr <-> créole (modèle NLLB si présent, sinon repli dictionnaire)
+POST /api/translate
+  - JSON : { "text": "Bonjour, merci", "direction": "fr-cr" }
 ```
+
+> ⚠️ Le lexique créole (`data/creole_gwada.json`) est un **lexique de départ**, non
+> exhaustif, à faire valider et enrichir par des locuteurs natifs.
+
+## 🌐 Traduction & entraînement (fr ↔ créole)
+
+`POST /api/translate` traduit entre le français et le créole guadeloupéen. Par défaut,
+sans modèle entraîné, il utilise un **repli dictionnaire + règles** (traduction mot à
+mot approximative). Pour une vraie traduction de phrases, entraînez un modèle NLLB :
+voir **[`training/README.md`](training/README.md)** (collecte de corpus parallèle,
+fine-tuning sur GPU, évaluation chrF/BLEU, mise en service via `TRANSLATION_MODEL_DIR`).
 
 ## 🔍 Dépannage
 

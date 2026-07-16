@@ -1,0 +1,8 @@
+# Dépendances pour l'ENTRAÎNEMENT du modèle de traduction (GPU requis).
+# À installer sur Colab/Kaggle/serveur GPU, PAS dans l'environnement web du projet.
+transformers>=4.40
+datasets>=2.18
+sentencepiece>=0.1.99
+sacrebleu>=2.4
+torch>=2.1
+accelerate>=0.28

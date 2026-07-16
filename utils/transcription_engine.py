@@ -43,6 +43,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Répertoire de téléchargement des modèles (configurable, cf. README / .env)
+MODEL_DIR = os.getenv('WHISPER_MODEL_DIR', './models')
+
 class TranscriptionEngine:
     """Moteur de transcription avec support multiple d'engines"""
     
@@ -99,10 +102,16 @@ class TranscriptionEngine:
                 logger.warning(f"❌ Erreur SpeechRecognition: {e}")
         
         if not available_engines:
-            logger.error("❌ Aucun moteur de transcription disponible!")
-            raise Exception("Aucun moteur de transcription disponible")
-        
-        logger.info(f"🎯 Moteurs disponibles: {', '.join(available_engines)}")
+            # On n'échoue pas au démarrage : l'interface web et les endpoints
+            # d'information doivent rester disponibles. L'erreur est levée seulement
+            # au moment où une transcription est réellement demandée (voir transcribe()).
+            logger.warning(
+                "⚠️ Aucun moteur de transcription disponible - "
+                "installez faster-whisper, openai-whisper ou SpeechRecognition"
+            )
+        else:
+            logger.info(f"🎯 Moteurs disponibles: {', '.join(available_engines)}")
+
         self.available_engines = available_engines
     
     def get_available_engines(self) -> Dict[str, bool]:
@@ -139,7 +148,7 @@ class TranscriptionEngine:
                     model_size,
                     device=device,
                     compute_type=compute_type,
-                    download_root="./models"
+                    download_root=MODEL_DIR
                 )
                 
                 self.models["faster_whisper"] = model
@@ -151,7 +160,7 @@ class TranscriptionEngine:
                 
                 model = whisper.load_model(
                     model_size,
-                    download_root="./models"
+                    download_root=MODEL_DIR
                 )
                 
                 self.models["whisper"] = model
@@ -311,8 +320,8 @@ class TranscriptionEngine:
         try:
             model = self.models.get("whisper")
             if not model:
-                # Charger le modèle à la volée
-                self.load_model("small")
+                # Charger le modèle à la volée (taille demandée si connue)
+                self.load_model(self.current_model_size or "small")
                 model = self.models["whisper"]
             
             language_code = self.supported_languages.get(language)
@@ -523,7 +532,6 @@ class TranscriptionEngine:
         """Corrections générales pour toutes les langues"""
         import re
         
-        # Supprimer les espaces multiples
         # Supprimer les espaces multiples
         text = re.sub(r'\s+', ' ', text)
         

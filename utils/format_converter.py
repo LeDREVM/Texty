@@ -23,8 +23,7 @@ class FormatConverter:
             "srt": "Sous-titres SubRip",
             "vtt": "WebVTT",
             "json": "JSON structuré",
-            "docx": "Document Word",
-            "pdf": "Document PDF",
+            "docx": "Document Word (HTML)",
             "csv": "Tableur CSV"
         }
     

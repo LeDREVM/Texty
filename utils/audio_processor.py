@@ -246,7 +246,12 @@ class AudioProcessor:
                 audio_segment = AudioSegment.from_file(input_path)
                 start_ms = int(start_time * 1000)
                 end_ms = int(end_time * 1000)
-                
+
+                segment = audio_segment[start_ms:end_ms]
+
+                output_path = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
+                segment.export(output_path, format='wav')
+
             elif LIBROSA_AVAILABLE:
                 # Fallback avec LibROSA
                 audio_data, sr = self.load_audio(input_path)
@@ -507,16 +512,5 @@ class AudioProcessor:
             except Exception as e:
                 logger.error(f"Erreur lors du traitement de {file_path}: {e}")
                 processed_files.append(None)
-        
-        return processed_files_segment[start_ms:end_ms]
-                
-                output_path = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
-                segment.export(output_path, format='wav')
-                
-            elif LIBROSA_AVAILABLE:
-                # Fallback avec LibROSA
-                audio_data, sr = self.load_audio(input_path)
-                start_sample = int(start_time * sr)
-                end_sample = int(end_time * sr)
-                
-                segment = audio
+
+        return processed_files

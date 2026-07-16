@@ -1,0 +1,26 @@
+# Corpus parallèle français <-> créole guadeloupéen (kréyòl gwadloupéyen)
+# Format : une paire par ligne, séparée par une TABULATION :
+#     phrase_française<TAB>phrase_créole
+# Les lignes vides et celles commençant par « # » sont ignorées.
+#
+# ⚠️ DONNÉES DE DÉPART, À VALIDER ET ENRICHIR PAR DES LOCUTEURS NATIFS.
+# Pour entraîner un vrai modèle de traduction, il faut idéalement des
+# milliers de paires (Bible/Nouveau Testament en créole, proverbes,
+# chansons, contes, sous-titres, phrases traduites à la main…).
+#
+# Colonne 1 = français        Colonne 2 = créole guadeloupéen
+Bonjour	Bonjou
+Bonsoir	Bonswa
+Au revoir	Orevwa
+Merci	Mèsi
+Merci beaucoup	Mèsi an chay
+Comment ça va ?	Ka ou fè ?
+Ça va bien	Sa ka maché
+Je mange du pain	An ka manjé pen
+Je vais à la maison	An ka alé an kaz
+J'étais là	An té la
+J'irai demain	An ké alé dèmen
+Il pleut	Lapli ka tonbé
+L'eau est froide	Dlo-la fret
+Nous allons à la mer	Nou ka alé bò lanmè
+La musique est belle	Mizik-la bèl
