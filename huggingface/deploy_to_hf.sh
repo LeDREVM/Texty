@@ -6,7 +6,7 @@
 #
 # Prérequis (une seule fois) :
 #   pip install -U "huggingface_hub[cli]"
-#   huggingface-cli login          # colle ton token : https://huggingface.co/settings/tokens
+#   hf auth login                  # colle ton token : https://huggingface.co/settings/tokens
 #
 # Usage (depuis la racine du dépôt) :
 #   bash huggingface/deploy_to_hf.sh <ton_user_hf> [nom_space]
@@ -22,11 +22,11 @@ WORK="$(mktemp -d)"
 echo "▶ Space cible : https://huggingface.co/spaces/$REPO_ID"
 
 # 1) Créer le Space (Docker) s'il n'existe pas encore
-if command -v huggingface-cli >/dev/null 2>&1; then
-  huggingface-cli repo create "$SPACE" --type space --space_sdk docker -y 2>/dev/null \
+if command -v hf >/dev/null 2>&1; then
+  hf repo create "$SPACE" --repo-type space 2>/dev/null \
     && echo "  Space créé." || echo "  (Space déjà existant ou création ignorée.)"
 else
-  echo "  huggingface-cli absent : crée le Space à la main (SDK Docker) sur https://huggingface.co/new-space"
+  echo "  CLI 'hf' absente : crée le Space à la main (SDK Docker) sur https://huggingface.co/new-space"
 fi
 
 # 2) Cloner le dépôt du Space

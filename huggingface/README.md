@@ -6,7 +6,7 @@ colorTo: blue
 sdk: docker
 app_port: 7860
 pinned: false
-short_description: Transcription audio multilingue (Whisper) + créole guadeloupéen
+short_description: Transcription audio Whisper + créole guadeloupéen
 ---
 
 # Texty — backend sur Hugging Face Spaces (Docker, gratuit)
