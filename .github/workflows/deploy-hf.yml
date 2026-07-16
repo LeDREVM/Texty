@@ -1,0 +1,51 @@
+name: Deploy backend to Hugging Face Space
+
+# Redéploie automatiquement le backend (Flask + Whisper) sur le Space HF à
+# chaque push. Ne s'exécute QUE si la variable de dépôt HF_SPACE est définie,
+# pour ne pas échouer chez ceux qui n'ont pas configuré le déploiement.
+#
+# Configuration requise (Repo ▸ Settings ▸ Secrets and variables ▸ Actions) :
+#   - Secret   HF_TOKEN     = ton token Hugging Face (rôle Write) — JAMAIS en clair ailleurs
+#   - Variable HF_USERNAME  = ton nom d'utilisateur HF (ex. myel)
+#   - Variable HF_SPACE     = le nom du Space (ex. texty)
+
+on:
+  push:
+    branches: [ main, claudedrevm/great-johnson-sjgywp ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ vars.HF_SPACE != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Hugging Face CLI
+        run: pip install -U "huggingface_hub[cli]"
+
+      - name: Assemble Space files
+        run: |
+          mkdir -p _hf
+          cp Dockerfile requirements.txt app.py wsgi.py _hf/
+          cp -r utils templates static data _hf/
+          cp huggingface/README.md _hf/README.md
+
+      - name: Create Space if missing
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: huggingface-cli repo create "${{ vars.HF_SPACE }}" --type space --space_sdk docker -y || true
+
+      - name: Upload to Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          huggingface-cli upload "${{ vars.HF_USERNAME }}/${{ vars.HF_SPACE }}" _hf . \
+            --repo-type=space \
+            --commit-message "Deploy from GitHub ${GITHUB_SHA::7}"
