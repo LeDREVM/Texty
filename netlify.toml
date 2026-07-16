@@ -1,0 +1,24 @@
+# Configuration Netlify — front statique (dashboard) uniquement.
+# Le backend Flask/Whisper NE tourne PAS sur Netlify (voir README, section Netlify) ;
+# il est hébergé ailleurs et référencé via la variable d'environnement API_BASE_URL.
+
+[build]
+  command = "bash netlify/build.sh"
+  publish = "dist"
+
+# Renseigne l'URL de ton backend dans : Site settings > Environment variables
+#   API_BASE_URL = "https://mon-backend.example.com"
+# (le build l'injecte dans static/js/config.js)
+
+# Cache long des assets statiques
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# Sécurité de base
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

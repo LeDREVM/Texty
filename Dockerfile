@@ -1,0 +1,40 @@
+# Backend Transcripteur Audio Pro (Flask + Whisper).
+# Compatible Render ET Hugging Face Spaces (Docker) : conteneur NON-ROOT
+# (exigé par HF Spaces, accepté par Render) et port configurable ${PORT:-7860}.
+# Whisper nécessite ffmpeg + libsndfile (impossible en runtime natif).
+FROM python:3.11-slim
+
+# Dépendances système : ffmpeg (pydub/whisper), libsndfile (soundfile)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utilisateur non-root (UID 1000) requis par Hugging Face Spaces
+RUN useradd -m -u 1000 user
+
+WORKDIR /app
+
+# Installer les dépendances Python (meilleur cache de build)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copier le code puis donner la propriété à l'utilisateur non-root
+COPY . .
+RUN chown -R user:user /app
+
+# Caches et modèles dans des dossiers inscriptibles par l'utilisateur
+ENV PYTHONUNBUFFERED=1 \
+    FLASK_DEBUG=False \
+    HOME=/app \
+    HF_HOME=/app/.cache/huggingface \
+    XDG_CACHE_HOME=/app/.cache \
+    WHISPER_MODEL_DIR=/app/models \
+    PORT=7860
+
+USER user
+EXPOSE 7860
+
+# Port flexible : Render fournit $PORT (ex. 10000), HF Spaces utilise 7860.
+# Timeout élevé (transcription CPU longue), 1 worker (mémoire).
+CMD ["sh", "-c", "gunicorn wsgi:application --bind 0.0.0.0:${PORT:-7860} --workers 1 --timeout 300"]

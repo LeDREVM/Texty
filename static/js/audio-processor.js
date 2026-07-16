@@ -134,7 +134,7 @@ function buildEnhanceFormData() {
 }
 
 async function requestEnhancedBlob() {
-    const response = await fetch('/api/enhance', { method: 'POST', body: buildEnhanceFormData() });
+    const response = await fetch(apiUrl('/api/enhance'), { method: 'POST', body: buildEnhanceFormData() });
     if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || `Erreur serveur (${response.status})`);
