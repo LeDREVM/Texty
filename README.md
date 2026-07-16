@@ -131,6 +131,37 @@ python app.py
 gunicorn wsgi:application
 ```
 
+## ☁️ Déploiement Netlify (front) + backend externe
+
+> ⚠️ Netlify **n'exécute pas** le backend Flask/Whisper (hébergement statique +
+> fonctions serverless : pas de GPU, taille/durée limitées). On y publie donc
+> uniquement le **dashboard**, et la transcription est servie par un backend
+> hébergé ailleurs (Render, Railway, Hugging Face Spaces, Hostinger…).
+
+**Architecture**
+
+```
+Netlify (statique)            Backend Flask/Whisper (ailleurs)
+  templates/index.html   --->   POST /api/transcribe, /api/enhance…
+  static/*.js  (config.js)      (app.py / wsgi.py)
+```
+
+**1. Déployer le front sur Netlify**
+- Build command : `bash netlify/build.sh` — publish directory : `dist`
+  (déjà configuré dans `netlify.toml` ; le build copie `index.html` + `static/`).
+- Variable d'environnement Netlify **`API_BASE_URL`** = l'URL publique de ton backend,
+  ex. `https://mon-backend.example.com`. Le build l'injecte dans `static/js/config.js`.
+  (Laisser vide = appels en même origine, utile seulement si tu sers tout depuis Flask.)
+
+**2. Déployer le backend ailleurs**
+- Héberge `app.py` (via `gunicorn wsgi:application`) sur une plateforme qui exécute Python.
+- Autorise l'origine du front Netlify dans le CORS du backend :
+  `export CORS_ORIGINS="https://ton-site.netlify.app"` (lu par `app.py`).
+
+Le front bascule automatiquement vers `API_BASE_URL` pour **tous** les appels
+(`/api/transcribe`, `/api/enhance`, `/api/dictionary`, `/api/translate`, …) via
+l'aide `apiUrl()` de `static/js/config.js`.
+
 L'application sera accessible sur `http://localhost:5000`
 
 ### Interface web

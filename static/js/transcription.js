@@ -45,7 +45,7 @@ function startTranscription() {
     if (transcriptArea) transcriptArea.style.display = 'none';
     startProgress();
 
-    fetch('/api/transcribe', { method: 'POST', body: formData })
+    fetch(apiUrl('/api/transcribe'), { method: 'POST', body: formData })
         .then(async (response) => {
             const data = await response.json().catch(() => ({}));
             if (!response.ok || data.success === false) {
@@ -143,7 +143,7 @@ function exportFormat(kind) {
     const meta = EXPORT_META[kind];
     if (!meta) { showToast('Format inconnu', 'error'); return; }
 
-    fetch('/api/convert_format', {
+    fetch(apiUrl('/api/convert_format'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
